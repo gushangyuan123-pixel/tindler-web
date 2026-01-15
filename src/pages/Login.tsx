@@ -24,20 +24,36 @@ declare global {
 }
 
 export function Login({ onSuccess }: LoginProps) {
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
   const handleCredentialResponse = useCallback(async (response: any) => {
+    setIsLoading(true);
+    setError(null);
+
     try {
+      console.log('Google credential received, sending to backend...');
+
       // Send Google credential to backend
       const result = await apiService.loginWithGoogle(response.credential);
 
-      if (result.success) {
+      console.log('Backend response:', result);
+
+      if (result.success && result.token) {
         // Store tokens
         apiService.setTokens(result.token, result.refreshToken);
+        console.log('Tokens stored, calling onSuccess...');
         onSuccess(result.user);
       } else {
-        console.error('Login failed:', result.error);
+        const errorMsg = result.error || 'Login failed - no token received';
+        console.error('Login failed:', errorMsg);
+        setError(errorMsg);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error during login:', error);
+      setError(error.message || 'Failed to connect to server');
+    } finally {
+      setIsLoading(false);
     }
   }, [onSuccess]);
 
@@ -131,6 +147,24 @@ export function Login({ onSuccess }: LoginProps) {
           className="flex justify-center"
         />
       </motion.div>
+
+      {/* Loading indicator */}
+      {isLoading && (
+        <div className="mt-6">
+          <div className="w-8 h-8 border-3 border-acid-yellow border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
+
+      {/* Error message */}
+      {error && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-sm text-hot-pink text-center mt-6 px-8"
+        >
+          {error}
+        </motion.p>
+      )}
 
       {/* Terms */}
       <motion.p
