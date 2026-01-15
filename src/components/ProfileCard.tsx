@@ -78,12 +78,13 @@ export function ProfileCard({
           {/* Gradient overlay for text readability */}
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
 
-          {/* Verified badge */}
-          {profile.isVerified && (
-            <div className="absolute top-4 left-4 z-20">
-              <VerifiedBadge />
-            </div>
-          )}
+          {/* Badges */}
+          <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-electric-blue text-white text-[10px] font-mono uppercase tracking-wider rounded-sm">
+              BMOE 2026
+            </span>
+            {profile.isVerified && <VerifiedBadge />}
+          </div>
 
           {/* Profile info - overlaid at bottom */}
           <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
@@ -94,11 +95,11 @@ export function ProfileCard({
               {profile.role} @ {profile.company}
             </p>
 
-            {/* Hot take */}
+            {/* Hot take - full text */}
             {profile.hotTake && (
               <div className="flex gap-2 mb-3">
                 <div className="w-1 bg-acid-yellow rounded-full flex-shrink-0" />
-                <p className="text-sm text-white/90 line-clamp-2 italic drop-shadow-md">
+                <p className="text-sm text-white/90 italic drop-shadow-md">
                   "{profile.hotTake}"
                 </p>
               </div>
