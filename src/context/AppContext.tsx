@@ -1,5 +1,7 @@
-import React, { createContext, useContext, useReducer, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, ReactNode, useCallback, useEffect } from 'react';
 import { UserProfile, Match, INTERESTS, ROLES } from '../services/types';
+
+const STORAGE_KEY = 'tindler_app_state';
 
 interface AppState {
   isOnboarded: boolean;
@@ -13,6 +15,46 @@ interface AppState {
   likesCount: number;
   selectedInterests: Set<string>;
   selectedRoles: Set<string>;
+}
+
+// Load state from localStorage
+function loadState(): Partial<AppState> {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return {
+        isOnboarded: parsed.isOnboarded ?? false,
+        hasSelectedProfile: parsed.hasSelectedProfile ?? false,
+        currentUser: parsed.currentUser ?? null,
+        matches: (parsed.matches ?? []).map((m: any) => ({
+          ...m,
+          matchedAt: m.matchedAt ? new Date(m.matchedAt) : new Date(),
+          lastMessageAt: m.lastMessageAt ? new Date(m.lastMessageAt) : undefined,
+        })),
+        likesCount: parsed.likesCount ?? 0,
+      };
+    }
+  } catch (e) {
+    console.error('Failed to load state:', e);
+  }
+  return {};
+}
+
+// Save state to localStorage
+function saveState(state: AppState) {
+  try {
+    const toSave = {
+      isOnboarded: state.isOnboarded,
+      hasSelectedProfile: state.hasSelectedProfile,
+      currentUser: state.currentUser,
+      matches: state.matches,
+      likesCount: state.likesCount,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+  } catch (e) {
+    console.error('Failed to save state:', e);
+  }
 }
 
 type AppAction =
@@ -32,7 +74,7 @@ type AppAction =
   | { type: 'CLEAR_FILTERS' }
   | { type: 'UPDATE_MATCH_MESSAGE'; payload: { matchId: string; message: string } };
 
-const initialState: AppState = {
+const defaultState: AppState = {
   isOnboarded: false,
   hasSelectedProfile: false,
   currentUser: null,
@@ -44,6 +86,13 @@ const initialState: AppState = {
   likesCount: 0,
   selectedInterests: new Set(),
   selectedRoles: new Set(),
+};
+
+// Merge saved state with defaults
+const savedState = loadState();
+const initialState: AppState = {
+  ...defaultState,
+  ...savedState,
 };
 
 function appReducer(state: AppState, action: AppAction): AppState {
@@ -153,6 +202,11 @@ const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
+
+  // Save state to localStorage whenever important state changes
+  useEffect(() => {
+    saveState(state);
+  }, [state.isOnboarded, state.hasSelectedProfile, state.currentUser, state.matches, state.likesCount]);
 
   const chatsCount = state.matches.filter((m) => m.lastMessage).length;
 
