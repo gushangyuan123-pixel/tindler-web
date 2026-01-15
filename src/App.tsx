@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider, useApp } from './context/AppContext';
 
 // Pages
+import { Login } from './pages/Login';
 import { OnboardingFlow } from './pages/Onboarding';
 import { ProfileSelection } from './pages/ProfileSelection';
 import { Discover } from './pages/Discover';
@@ -18,7 +19,7 @@ import { Profile } from './pages/Profile';
 import { TabBar } from './components/TabBar';
 
 function AppRoutes() {
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, signIn } = useAuth();
   const { isOnboarded, hasSelectedProfile, matches, chatsCount } = useApp();
   const location = useLocation();
 
@@ -29,6 +30,11 @@ function AppRoutes() {
         <div className="w-12 h-12 border-3 border-acid-yellow border-t-transparent rounded-full animate-spin" />
       </div>
     );
+  }
+
+  // Show login if not authenticated
+  if (!isAuthenticated) {
+    return <Login onSuccess={signIn} />;
   }
 
   // Determine which screen to show based on state
