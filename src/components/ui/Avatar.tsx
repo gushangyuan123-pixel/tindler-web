@@ -42,13 +42,15 @@ export function Avatar({
   badge,
   className = '',
   fallbackId,
-}: AvatarProps & { fallbackId?: string }) {
+  fallbackName,
+}: AvatarProps & { fallbackId?: string; fallbackName?: string }) {
   const [imageError, setImageError] = useState(false);
 
   // Generate a placeholder URL if no src provided or if image failed to load
   const getImageSrc = () => {
     if (src && !imageError) return src;
-    if (fallbackId) return `https://i.pravatar.cc/200?u=${fallbackId}`;
+    if (fallbackName) return `https://ui-avatars.com/api/?name=${encodeURIComponent(fallbackName)}&background=4D4D4D&color=fff&size=200`;
+    if (fallbackId) return `https://ui-avatars.com/api/?name=${encodeURIComponent(fallbackId)}&background=4D4D4D&color=fff&size=200`;
     return null;
   };
 

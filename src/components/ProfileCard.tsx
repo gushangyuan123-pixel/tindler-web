@@ -66,16 +66,13 @@ export function ProfileCard({
         <div className="relative h-[420px] bg-medium-gray">
           {/* Profile photo - full bleed */}
           <img
-            src={profile.photoUrl || `https://closeai.mba/tindler-profiles/${profile.id}.jpg`}
+            src={profile.photoUrl}
             alt={profile.name}
             className="absolute inset-0 w-full h-full object-cover object-center"
             onError={(e) => {
-              // Try alternate URL format, then fallback to avatar
               const target = e.currentTarget;
-              if (!target.dataset.tried) {
-                target.dataset.tried = 'true';
-                target.src = `https://closeai.mba/tindler-profiles/${profile.id.toLowerCase().replace(/\s+/g, '_')}.jpg`;
-              } else {
+              if (!target.dataset.fallback) {
+                target.dataset.fallback = 'true';
                 target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name)}&background=4D4D4D&color=fff&size=400`;
               }
             }}
