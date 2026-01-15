@@ -7,7 +7,7 @@ import { Button } from '../components/ui/Button';
 import { InterestList } from '../components/InterestTag';
 import { useApp } from '../context/AppContext';
 import { UserProfile } from '../services/types';
-import { mockProfiles, shuffleProfiles } from '../data/mockProfiles';
+import { apiService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 
 export function Discover() {
@@ -41,39 +41,57 @@ export function Discover() {
     loadProfiles();
   }, []);
 
-  const loadProfiles = () => {
+  const loadProfiles = async () => {
     setIsLoading(true);
-    // Use mock data - shuffle and exclude current user
-    const shuffled = shuffleProfiles(mockProfiles).filter(
-      (p) => p.id !== currentUser?.id
-    );
-    setProfiles(shuffled);
-    setIsLoading(false);
-  };
-
-  const handleLike = (profile: UserProfile) => {
-    incrementLikes();
-    removeProfile(profile.id);
-
-    // 50% chance of match (simulating mutual interest)
-    const isMatch = Math.random() > 0.5;
-    if (isMatch) {
-      // Create match object first
-      const newMatch = {
-        id: profile.id,
-        matchId: Date.now(),
-        profile,
-        matchedAt: new Date(),
-        unreadCount: 0,
-      };
-      // Add to matches and show popup with match data
-      addMatch(newMatch);
-      showMatch(profile, newMatch);
+    try {
+      // Fetch profiles from real backend API
+      const response = await apiService.getSwipeProfiles();
+      if (response.success && response.profiles) {
+        // Shuffle and exclude current user
+        const shuffled = response.profiles
+          .sort(() => Math.random() - 0.5)
+          .filter((p: UserProfile) => p.id !== currentUser?.id);
+        setProfiles(shuffled);
+      }
+    } catch (error) {
+      console.error('Error loading profiles:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handlePass = (profile: UserProfile) => {
+  const handleLike = async (profile: UserProfile) => {
+    incrementLikes();
     removeProfile(profile.id);
+
+    try {
+      // Call real backend API to like profile
+      const response = await apiService.likeProfile(profile.id);
+
+      if (response.success && response.isMatch) {
+        // Real match from backend!
+        const newMatch = {
+          id: profile.id,
+          matchId: response.matchId,
+          profile,
+          matchedAt: new Date(),
+          unreadCount: 0,
+        };
+        addMatch(newMatch);
+        showMatch(profile, newMatch);
+      }
+    } catch (error) {
+      console.error('Error liking profile:', error);
+    }
+  };
+
+  const handlePass = async (profile: UserProfile) => {
+    removeProfile(profile.id);
+    try {
+      await apiService.passProfile(profile.id);
+    } catch (error) {
+      console.error('Error passing profile:', error);
+    }
   };
 
   const handleSendMessage = () => {

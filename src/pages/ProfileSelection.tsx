@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Check, ChevronRight } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Avatar } from '../components/ui/Avatar';
 import { useApp } from '../context/AppContext';
-import { mockProfiles } from '../data/mockProfiles';
+import { apiService } from '../services/api';
+import { UserProfile } from '../services/types';
 
 interface ProfileSelectionProps {
   onComplete: () => void;
@@ -13,10 +14,29 @@ interface ProfileSelectionProps {
 export function ProfileSelection({ onComplete }: ProfileSelectionProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [allProfiles, setAllProfiles] = useState<UserProfile[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const { setHasSelectedProfile, setCurrentUser } = useApp();
 
-  const filteredProfiles = mockProfiles.filter((profile) =>
+  useEffect(() => {
+    loadProfiles();
+  }, []);
+
+  const loadProfiles = async () => {
+    try {
+      const response = await apiService.getAllProfiles();
+      if (response.success && response.profiles) {
+        setAllProfiles(response.profiles);
+      }
+    } catch (error) {
+      console.error('Error loading profiles:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filteredProfiles = allProfiles.filter((profile) =>
     profile.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -24,11 +44,18 @@ export function ProfileSelection({ onComplete }: ProfileSelectionProps) {
     setSelectedId(profileId);
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!selectedId) return;
 
-    const selected = mockProfiles.find((p) => p.id === selectedId);
+    const selected = allProfiles.find((p) => p.id === selectedId);
     if (selected) {
+      try {
+        // Claim profile in backend
+        await apiService.claimProfile(selectedId);
+      } catch (error) {
+        console.error('Error claiming profile:', error);
+      }
+
       setCurrentUser({
         id: selected.id,
         name: selected.name,
@@ -86,6 +113,11 @@ export function ProfileSelection({ onComplete }: ProfileSelectionProps) {
 
       {/* Profile grid */}
       <div className="flex-1 overflow-y-auto px-6">
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="w-10 h-10 border-3 border-acid-yellow border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : (
         <div className="grid grid-cols-3 gap-4 pb-32">
           {filteredProfiles.map((profile, index) => (
             <motion.button
@@ -124,6 +156,7 @@ export function ProfileSelection({ onComplete }: ProfileSelectionProps) {
             </motion.button>
           ))}
         </div>
+        )}
       </div>
 
       {/* Continue button */}
