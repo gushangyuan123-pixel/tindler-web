@@ -27,8 +27,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (token && storedUser) {
         try {
-          // Verify token is still valid
-          const response = await apiService.getCurrentUser();
+          // Verify token is still valid with timeout
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Timeout')), 5000)
+          );
+          const response = await Promise.race([
+            apiService.getCurrentUser(),
+            timeoutPromise
+          ]) as any;
+
           if (response.success && response.user) {
             setUser(response.user);
             setIsAuthenticated(true);
@@ -38,7 +45,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             localStorage.removeItem(USER_STORAGE_KEY);
           }
         } catch (error) {
-          // Token invalid or expired
+          // Token invalid, expired, or timeout
+          console.log('Auth check failed, clearing tokens');
           apiService.clearTokens();
           localStorage.removeItem(USER_STORAGE_KEY);
         }
