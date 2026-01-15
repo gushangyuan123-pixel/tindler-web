@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  height: 100%;
+  height: -webkit-fill-available;
+}
+
+body {
+  min-height: 100%;
+  min-height: -webkit-fill-available;
+}
+
+/* Prevent pull-to-refresh on mobile */
+body {
+  overscroll-behavior-y: contain;
+}
+
+/* Safe area insets for notched devices */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Brutalist component classes */
+@layer components {
+  .brutalist-card {
+    @apply bg-white rounded-brutalist shadow-brutalist;
+  }
+
+  .brutalist-button {
+    @apply px-6 py-3.5 rounded-brutalist shadow-brutalist font-bold text-black
+           active:translate-x-1 active:translate-y-1 active:shadow-none transition-all duration-100;
+  }
+
+  .brutalist-button-primary {
+    @apply brutalist-button bg-acid-yellow;
+  }
+
+  .brutalist-button-outline {
+    @apply brutalist-button bg-white border-[3px] border-black;
+  }
+
+  .brutalist-button-danger {
+    @apply brutalist-button bg-hot-pink text-white;
+  }
+
+  .brutalist-input {
+    @apply w-full px-4 py-4 bg-dark-gray border-2 border-medium-gray rounded-brutalist
+           text-white placeholder:text-light-gray/50 focus:border-acid-yellow focus:outline-none;
+  }
+
+  .interest-tag {
+    @apply px-3 py-1.5 bg-acid-yellow text-black font-mono text-xs rounded-full whitespace-nowrap;
+  }
+
+  .interest-tag-inactive {
+    @apply px-3 py-1.5 bg-medium-gray/50 text-white font-mono text-xs rounded-full whitespace-nowrap;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4D4D4D;
+  border-radius: 2px;
+}
+
+/* Hide scrollbar for horizontal scroll containers */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Touch action for swipeable elements */
+.swipeable {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
