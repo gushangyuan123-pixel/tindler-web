@@ -4,9 +4,10 @@ import { motion } from 'framer-motion';
 import { ChevronLeft, MoreVertical, Send, User } from 'lucide-react';
 import { Avatar } from '../components/ui/Avatar';
 import { ChatBubble, ConversationStarter } from '../components/ChatBubble';
-import { Match, Message } from '../services/types';
+import { Match, Message, apiMessageToMessage } from '../services/types';
 import { generateConversationStarters } from '../utils/aiStarters';
 import { useApp } from '../context/AppContext';
+import { apiService } from '../services/api';
 
 export function Chat() {
   const { matchId } = useParams<{ matchId: string }>();
@@ -29,60 +30,115 @@ export function Chat() {
     : [];
 
   useEffect(() => {
-    // Load messages from localStorage for this match
-    if (matchId) {
-      const savedMessages = localStorage.getItem(`chat_messages_${matchId}`);
-      if (savedMessages) {
-        try {
-          const parsed = JSON.parse(savedMessages);
-          setMessages(parsed.map((m: any) => ({
-            ...m,
-            createdAt: new Date(m.createdAt),
-          })));
-        } catch (e) {
-          console.error('Failed to parse saved messages:', e);
+    // Load messages from API
+    const loadMessages = async () => {
+      if (!matchId) return;
+
+      try {
+        const response = await apiService.getMessages(parseInt(matchId));
+        if (response.success && response.messages) {
+          setMessages(response.messages.map(apiMessageToMessage));
         }
+      } catch (error) {
+        console.error('Failed to load messages:', error);
+        // Fall back to localStorage if API fails
+        const savedMessages = localStorage.getItem(`chat_messages_${matchId}`);
+        if (savedMessages) {
+          try {
+            const parsed = JSON.parse(savedMessages);
+            setMessages(parsed.map((m: any) => ({
+              ...m,
+              createdAt: new Date(m.createdAt),
+            })));
+          } catch (e) {
+            console.error('Failed to parse saved messages:', e);
+          }
+        }
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
-    }
+    };
+
+    loadMessages();
   }, [matchId]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  // Save messages to localStorage when they change
+  // Save messages to localStorage as backup
   useEffect(() => {
     if (matchId && messages.length > 0) {
       localStorage.setItem(`chat_messages_${matchId}`, JSON.stringify(messages));
     }
   }, [matchId, messages]);
 
+  // Poll for new messages every 5 seconds
+  useEffect(() => {
+    if (!matchId) return;
+
+    const pollMessages = async () => {
+      try {
+        const response = await apiService.getMessages(parseInt(matchId));
+        if (response.success && response.messages) {
+          const newMessages = response.messages.map(apiMessageToMessage);
+          // Only update if we have new messages
+          if (newMessages.length > messages.length) {
+            setMessages(newMessages);
+          }
+        }
+      } catch (error) {
+        // Silently fail on poll errors
+      }
+    };
+
+    const interval = setInterval(pollMessages, 5000);
+    return () => clearInterval(interval);
+  }, [matchId, messages.length]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleSend = () => {
-    if (!messageText.trim() || !matchId) return;
+  const handleSend = async () => {
+    if (!messageText.trim() || !matchId || isSending) return;
 
     const text = messageText.trim();
     setMessageText('');
+    setIsSending(true);
 
-    // Create new message (local only - no API call)
-    const newMessage: Message = {
-      id: `msg-${Date.now()}`,
+    // Optimistically add the message to UI
+    const tempMessage: Message = {
+      id: `temp-${Date.now()}`,
       matchId: parseInt(matchId),
       senderId: 'current-user',
       content: text,
       createdAt: new Date(),
       isFromCurrentUser: true,
     };
+    setMessages((prev) => [...prev, tempMessage]);
 
-    // Add to messages
-    setMessages((prev) => [...prev, newMessage]);
+    try {
+      // Send to API
+      const response = await apiService.sendMessage(parseInt(matchId), text);
 
-    // Update match's last message in app state
-    updateMatchMessage(match?.id || '', text);
+      if (response.success && response.message) {
+        // Replace temp message with real one from server
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === tempMessage.id ? apiMessageToMessage(response.message) : m
+          )
+        );
+      }
+
+      // Update match's last message in app state
+      updateMatchMessage(match?.id || '', text);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      // Keep the message in UI but could show error state
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const handleStarterClick = (starter: string) => {
