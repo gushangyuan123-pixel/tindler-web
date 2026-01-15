@@ -2,8 +2,8 @@ import React, { useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { apiService } from '../services/api';
 
-// Google Client ID for Tindler Web
-const GOOGLE_CLIENT_ID = '188625251644-0q3nbm4kcbkmdj5laujallrclp6publ9.apps.googleusercontent.com';
+// Google Client ID for Tindler Web (Close CRM Web credentials)
+const GOOGLE_CLIENT_ID = '188625251644-v9g5d7f2g30op2mkoritdtecot69obcc.apps.googleusercontent.com';
 
 interface LoginProps {
   onSuccess: (user: any) => void;
