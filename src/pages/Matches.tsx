@@ -1,50 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Heart, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { MatchRow, NewMatchCard } from '../components/MatchRow';
 import { useApp } from '../context/AppContext';
-import apiService from '../services/api';
-import { Match, apiMatchToMatch } from '../services/types';
+import { Match } from '../services/types';
 
 export function Matches() {
   const navigate = useNavigate();
-  const { matches, setMatches } = useApp();
-  const [isLoading, setIsLoading] = useState(true);
+  const { matches } = useApp();
 
-  useEffect(() => {
-    loadMatches();
-  }, []);
-
-  const loadMatches = async () => {
-    try {
-      setIsLoading(true);
-      const response = await apiService.getMatches();
-      if (response.success) {
-        const loadedMatches = response.matches.map(apiMatchToMatch);
-        setMatches(loadedMatches);
-      }
-    } catch (err) {
-      console.error('Failed to load matches:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // Use local matches from context (persisted in localStorage)
   const newMatches = matches.filter((m) => !m.lastMessage);
   const conversations = matches.filter((m) => m.lastMessage);
 
   const handleMatchClick = (match: Match) => {
     navigate(`/chat/${match.matchId}`, { state: { match } });
   };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-dark-gray flex items-center justify-center">
-        <div className="w-10 h-10 border-3 border-acid-yellow border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   if (matches.length === 0) {
     return <EmptyState />;
