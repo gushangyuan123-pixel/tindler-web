@@ -1,11 +1,5 @@
 import { UserProfile } from '../services/types';
 
-// Generate a placeholder photo URL based on profile ID
-function getPhotoUrl(id: string, name: string): string {
-  // Use pravatar.cc for consistent placeholder photos
-  return `https://i.pravatar.cc/400?img=${parseInt(id) % 70}`;
-}
-
 export const mockProfiles: UserProfile[] = [
   {
     id: "1",
@@ -16,7 +10,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Angel investing runs in the family. Always looking to hear about cool startups.",
     sideProjects: ["AI D&D with NPCs", "Edtech for public schools"],
     interests: ["Basketball", "Karaoke", "Tech Events"],
-    photoUrl: "https://i.pravatar.cc/400?img=1",
+    photoUrl: "/profiles/_darwin_gu.jpg",
     isVerified: true
   },
   {
@@ -28,7 +22,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Entrepreneurship teaches critical thinking and decision-making better than any class.",
     sideProjects: ["AI Trading Startup", "Algo Trading Intern"],
     interests: ["FinTech", "AI", "Trading"],
-    photoUrl: "",
+    photoUrl: "/profiles/aaryan_gandhi.jpg",
     isVerified: true
   },
   {
@@ -40,7 +34,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I find fulfillment when working with a team to achieve goals that wouldn't be possible alone.",
     sideProjects: ["ML Projects", "Biotech exploration"],
     interests: ["Basketball", "Weightlifting", "Food"],
-    photoUrl: "",
+    photoUrl: "/profiles/adam_choe.jpg",
     isVerified: true
   },
   {
@@ -52,7 +46,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I like classes that actually stick with you after they're over.",
     sideProjects: ["Problem solving", "Collaborative building"],
     interests: ["Decision Making", "Learning", "Building"],
-    photoUrl: "",
+    photoUrl: "/profiles/alaap_nair.jpg",
     isVerified: true
   },
   {
@@ -64,7 +58,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Diversity is what makes a team truly effective. Clear communication is essential.",
     sideProjects: ["Sustainable Consulting Club", "International work experience"],
     interests: ["Sustainability", "Global Business", "Entrepreneurship"],
-    photoUrl: "",
+    photoUrl: "/profiles/alice_lemaire.jpg",
     isVerified: true
   },
   {
@@ -76,7 +70,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Business is not only a pathway to success, but a powerful tool for impact.",
     sideProjects: ["Target Automated Push Tool", "Accessibility initiatives"],
     interests: ["Supply Chain", "Market Strategy", "Accessibility"],
-    photoUrl: "",
+    photoUrl: "/profiles/angela_choi.jpg",
     isVerified: true
   },
   {
@@ -88,7 +82,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "A 'cool idea' is nothing without business strategy, networking, and resilience.",
     sideProjects: ["Mini-satellite project", "Robotic assistive devices"],
     interests: ["Hiking", "Biking", "Photography"],
-    photoUrl: "",
+    photoUrl: "/profiles/angelica_lewis.jpg",
     isVerified: true
   },
   {
@@ -100,7 +94,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Two friends said BMOE was their favorite class at Cal!",
     sideProjects: ["Music industry exploration", "Korean studies"],
     interests: ["Cooking", "Ceramics", "Surfing"],
-    photoUrl: "",
+    photoUrl: "/profiles/annalee_ambler.jpg",
     isVerified: true
   },
   {
@@ -112,7 +106,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Data-driven decisions can improve patient care experience at scale.",
     sideProjects: ["PwC Internship", "Biotech startup work"],
     interests: ["Healthcare", "Data Science", "Economics"],
-    photoUrl: "",
+    photoUrl: "/profiles/anvi_damani.jpg",
     isVerified: true
   },
   {
@@ -124,7 +118,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I learn best by doing, not reading about it.",
     sideProjects: ["Case Competitions", "Public Policy minor"],
     interests: ["Skiing", "Snowboarding", "Problem Solving"],
-    photoUrl: "",
+    photoUrl: "/profiles/anya_desai.jpg",
     isVerified: true
   },
   {
@@ -136,7 +130,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Message me if you want to get funded. Always great seeing fellow builders.",
     sideProjects: ["VC-backed startup", "DECODE facilitator"],
     interests: ["Startups", "Venture Capital", "Building"],
-    photoUrl: "",
+    photoUrl: "/profiles/artem_gevorgyan.jpg",
     isVerified: true
   },
   {
@@ -148,7 +142,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Problem solving and critical thinking are the most valuable skills from entrepreneurship.",
     sideProjects: ["Marketing/Graphic Design", "Clothes Reselling"],
     interests: ["Finance", "Consulting", "Design"],
-    photoUrl: "",
+    photoUrl: "/profiles/bahar_saeed.jpg",
     isVerified: true
   },
   {
@@ -160,7 +154,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Exploring entrepreneurship to see if it's something I want to pursue long term.",
     sideProjects: ["Cybersecurity projects", "Technology tinkering"],
     interests: ["Badminton", "Chess", "Cybersecurity"],
-    photoUrl: "",
+    photoUrl: "/profiles/ben_hung.jpg",
     isVerified: true
   },
   {
@@ -172,7 +166,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I want to leverage Berkeley's focus on experimentation to improve how I build ventures.",
     sideProjects: ["Fintech startups", "Government pilots"],
     interests: ["Startup Building", "Iteration", "Real-world impact"],
-    photoUrl: "",
+    photoUrl: "/profiles/bodhi_silberling.jpg",
     isVerified: true
   },
   {
@@ -184,7 +178,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "My interests and strengths lead me towards entrepreneurship but I don't know where to begin.",
     sideProjects: ["NFL Career", "Career transition"],
     interests: ["Football", "Entrepreneurship", "Business"],
-    photoUrl: "",
+    photoUrl: "/profiles/chad_hansen.jpg",
     isVerified: true
   },
   {
@@ -196,7 +190,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "This bootcamp is my personal push to get started and not be afraid of failure.",
     sideProjects: ["Innovation camp at 14", "Synchronized ice skating"],
     interests: ["Human Rights", "Ice Skating", "Entrepreneurship"],
-    photoUrl: "",
+    photoUrl: "/profiles/claire_spring.jpg",
     isVerified: true
   },
   {
@@ -208,7 +202,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I've always had a drive to drive. Now learning to drive business ideas too.",
     sideProjects: ["Rally Car Building", "Go Cart Racing"],
     interests: ["Rally Cars", "Racing", "Building"],
-    photoUrl: "",
+    photoUrl: "/profiles/dash_swinfard.jpg",
     isVerified: true
   },
   {
@@ -220,7 +214,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Passionate about soccer as goalkeeper for Cal club team.",
     sideProjects: ["Amazon FBA Business", "Private Label Brands"],
     interests: ["Soccer", "E-commerce", "CPG"],
-    photoUrl: "",
+    photoUrl: "/profiles/davis_jacob.jpg",
     isVerified: true
   },
   {
@@ -232,7 +226,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Turned my hobby (thrifting) into one that makes money!",
     sideProjects: ["ClaraLink - ASL translation device", "SportsTech Challenge Lab"],
     interests: ["Reselling", "ASL Tech", "Fashion"],
-    photoUrl: "",
+    photoUrl: "/profiles/diana_demartini_snapshot.jpg",
     isVerified: true
   },
   {
@@ -244,7 +238,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I learn best by doing, so the intensive hands-on format really appeals to me.",
     sideProjects: ["Case Competitions", "Strategy consulting"],
     interests: ["Hip Hop Dance", "Weightlifting", "Restaurants"],
-    photoUrl: "",
+    photoUrl: "/profiles/dorothy_nguyen.jpg",
     isVerified: true
   },
   {
@@ -256,7 +250,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Want to be surrounded by like-minded yet diverse entrepreneurs excited to build.",
     sideProjects: ["Non-profit Tutoring Center", "Social sector tech"],
     interests: ["Basketball", "Surfing", "Cooking"],
-    photoUrl: "",
+    photoUrl: "/profiles/dylan_gunadi.jpg",
     isVerified: true
   },
   {
@@ -268,7 +262,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Created and taught a Decal on 'Breaking Into Case Competitions'.",
     sideProjects: ["Case Competition Coach", "Haas Travel Team"],
     interests: ["Case Competitions", "Coaching", "Innovation"],
-    photoUrl: "",
+    photoUrl: "/profiles/ellie_hwang.jpg",
     isVerified: true
   },
   {
@@ -280,7 +274,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I like thinking 0-to-1 and being surrounded by people who inspire me to do more.",
     sideProjects: ["Software & AI exploration", "Product thinking"],
     interests: ["Hiking", "Surfing", "Tennis"],
-    photoUrl: "",
+    photoUrl: "/profiles/emma_shen.jpg",
     isVerified: true
   },
   {
@@ -292,7 +286,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Multidisciplinary collaboration and diverse perspectives lead to exceptional outcomes.",
     sideProjects: ["Aramco Transformation", "Cross-functional leadership"],
     interests: ["Theme Parks", "Board Games", "Football"],
-    photoUrl: "",
+    photoUrl: "/profiles/fareed_enani.jpg",
     isVerified: true
   },
   {
@@ -304,7 +298,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Ready to stop treating entrepreneurship as something I only watch and start practicing it.",
     sideProjects: ["Combat Robotics", "Exoskeleton Design"],
     interests: ["Brazilian Jiu-Jitsu", "Backpacking", "Diving"],
-    photoUrl: "",
+    photoUrl: "/profiles/faris_babsail.jpg",
     isVerified: true
   },
   {
@@ -316,7 +310,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Access to clean water directly shapes health outcomes. I've seen it firsthand.",
     sideProjects: ["Aqua Health Startup", "Water Treatment Systems"],
     interests: ["Health Ventures", "Impact", "Innovation"],
-    photoUrl: "",
+    photoUrl: "/profiles/frank_lartry.jpg",
     isVerified: true
   },
   {
@@ -328,7 +322,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Seeing my dad's entrepreneurship journey showed me how much resilience and risk-taking it takes.",
     sideProjects: ["Synchronized Swimming", "Family business observation"],
     interests: ["Swimming", "Business", "Problem Solving"],
-    photoUrl: "",
+    photoUrl: "/profiles/giordanna_zuniga.jpg",
     isVerified: true
   },
   {
@@ -340,7 +334,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I want to stop only thinking about entrepreneurship and start doing it.",
     sideProjects: ["EdTech advocacy", "Women in CS initiatives"],
     interests: ["Cooking", "Running", "Backpacking"],
-    photoUrl: "",
+    photoUrl: "/profiles/hala_boges.jpg",
     isVerified: true
   },
   {
@@ -352,7 +346,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I want to develop an intuitive sense for business and channel my imagination into something constructive.",
     sideProjects: ["Bio-Engineering Research", "Language learning"],
     interests: ["Gym", "Video Games", "French & Korean"],
-    photoUrl: "",
+    photoUrl: "/profiles/humayd_zameer.jpg",
     isVerified: true
   },
   {
@@ -364,7 +358,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Looking for meaningful relationships that could lead to future cofounding opportunities.",
     sideProjects: ["Edtech Startup", "Tech Show Host"],
     interests: ["Robotics", "Internet Governance", "MC Events"],
-    photoUrl: "",
+    photoUrl: "/profiles/ida_na-tei.jpg",
     isVerified: true
   },
   {
@@ -376,7 +370,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Music is unrepeatable; likewise is joy. I can never forget being surrounded by an audience.",
     sideProjects: ["Jazz Saxophone", "Failed boy band"],
     interests: ["Saxophone", "Jazz", "Improvisation"],
-    photoUrl: "",
+    photoUrl: "/profiles/ishaan_thakur.jpg",
     isVerified: true
   },
   {
@@ -388,7 +382,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I've always been inspired by entrepreneurs online but never figured out if this is what I want long term.",
     sideProjects: ["College Tennis", "Math studies"],
     interests: ["Tennis", "Mathematics", "Oktoberfest"],
-    photoUrl: "",
+    photoUrl: "/profiles/jakob_buehler.jpg",
     isVerified: true
   },
   {
@@ -400,7 +394,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I've never had access to the right resources to implement my innovative ideas. Until now.",
     sideProjects: ["Leerink Partners Case Comp", "Financial Modeling"],
     interests: ["DJing", "F1", "Theater"],
-    photoUrl: "",
+    photoUrl: "/profiles/jayden_lim.jpg",
     isVerified: true
   },
   {
@@ -412,7 +406,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "It is a dream of mine to work for myself one day. Excited to learn how to bring ideas to life.",
     sideProjects: ["Minecraft Server Network", "Fiverr Design"],
     interests: ["Hiking", "Concerts", "Music"],
-    photoUrl: "",
+    photoUrl: "/profiles/jazz_beecham.jpg",
     isVerified: true
   },
   {
@@ -424,7 +418,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "My personal goal is leaving a positive impact on the world through engineering.",
     sideProjects: ["Renewable Energy Projects", "EV systems"],
     interests: ["Swimming", "Music", "Growth"],
-    photoUrl: "",
+    photoUrl: "/profiles/jesus_cisneros-arreola.jpg",
     isVerified: true
   },
   {
@@ -436,7 +430,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I saw a group at 11pm engaged in discussion full of energy. I wanted to be part of that community.",
     sideProjects: ["Family Business Experience", "International Trade"],
     interests: ["Learning", "Cultural Exchange", "Building"],
-    photoUrl: "",
+    photoUrl: "/profiles/joana_wang.jpg",
     isVerified: true
   },
   {
@@ -448,7 +442,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I've had strong ideas but lacked clear frameworks on how to turn them into action.",
     sideProjects: ["Financial Literacy", "Competitive Swimming"],
     interests: ["Swimming", "Investing", "Impact"],
-    photoUrl: "",
+    photoUrl: "/profiles/jose_sanchez.jpg",
     isVerified: true
   },
   {
@@ -460,7 +454,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Watching my immigrant dad overcome barriers through resilience motivated me to lead and innovate.",
     sideProjects: ["Cal Band", "Engineering Student Council"],
     interests: ["Music", "Leadership", "Aerospace"],
-    photoUrl: "",
+    photoUrl: "/profiles/josemit_rodriguez.jpg",
     isVerified: true
   },
   {
@@ -472,7 +466,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I never knew the steps to take in entrepreneurship. This bootcamp is my first step.",
     sideProjects: ["AmigoAI Internship", "TikTok Creation"],
     interests: ["Data Analytics", "Food", "Content Creation"],
-    photoUrl: "",
+    photoUrl: "/profiles/kamryn_murillo.jpg",
     isVerified: true
   },
   {
@@ -484,7 +478,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Resilience makes me different. I really enjoy challenges and anything unknown.",
     sideProjects: ["Machine Learning", "Data-driven decisions"],
     interests: ["ML", "Challenges", "Technology"],
-    photoUrl: "",
+    photoUrl: "/profiles/kant(qiankang)_wang.jpg",
     isVerified: true
   },
   {
@@ -496,7 +490,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Curious about how brands can balance profitability and ethical practices.",
     sideProjects: ["Fashion Startup Shadowing", "Sustainable Fashion"],
     interests: ["Arts & Crafts", "Indoor Cycling", "Fashion"],
-    photoUrl: "",
+    photoUrl: "/profiles/kelly_liu.jpg",
     isVerified: true
   },
   {
@@ -508,7 +502,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Building Close AI to fix networking. 41% cold email response rates vs 2% industry average.",
     sideProjects: ["Close AI (live at closeai.mba)", "Peru Trek Leader"],
     interests: ["AI", "Content Creation", "Community Building"],
-    photoUrl: "",
+    photoUrl: "/profiles/kevin_astuhuaman.jpg",
     isVerified: true
   },
   {
@@ -520,7 +514,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "My many areas of knowledge can be a pretty helpful asset in the startup space.",
     sideProjects: ["Social Media Startup Help", "Economics & Philosophy"],
     interests: ["F1", "Jiujitsu", "Video Games"],
-    photoUrl: "",
+    photoUrl: "/profiles/kevin_ren.jpg",
     isVerified: true
   },
   {
@@ -532,7 +526,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I want to bridge my interest in entrepreneurship and applied engineering to create viable ventures.",
     sideProjects: ["Implant Rejection ML Model", "Healthcare Tech"],
     interests: ["Rock Climbing", "Photography", "Cooking"],
-    photoUrl: "",
+    photoUrl: "/profiles/krish_mishra.jpg",
     isVerified: true
   },
   {
@@ -544,7 +538,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Featured in Fortune, Vogue, Thomson Reuters, and BBC Global. Collecting designer price tags is my hobby.",
     sideProjects: ["SpaceX Art Launch", "PwC & Hugo Boss Collabs"],
     interests: ["3D Animation", "Cricket", "Networking Events"],
-    photoUrl: "",
+    photoUrl: "/profiles/layamathikshara_mathialagan.jpg",
     isVerified: true
   },
   {
@@ -556,7 +550,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Frequent walker with Trouper the dog (@trouperatcal on Instagram)!",
     sideProjects: ["Universal Studios Experience", "Business Pitching"],
     interests: ["Karaoke", "Supply Chain", "Theme Parks"],
-    photoUrl: "",
+    photoUrl: "/profiles/lily_salazar.jpg",
     isVerified: true
   },
   {
@@ -568,7 +562,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "There's no clear playbook. Stay calm, adapt quickly, and keep pushing forward.",
     sideProjects: ["Logistics Experience", "Cross-cultural adaptation"],
     interests: ["Problem Solving", "Customer Testing", "Engineering"],
-    photoUrl: "",
+    photoUrl: "/profiles/loren_sarajlic.jpg",
     isVerified: true
   },
   {
@@ -580,7 +574,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I enjoy translating complex technical ideas into solutions that work in the real world.",
     sideProjects: ["Reactor Design", "Home Fermentation"],
     interests: ["Biopharma", "Fermentation", "CO2 Conversion"],
-    photoUrl: "",
+    photoUrl: "/profiles/mariebatisse_heite.jpg",
     isVerified: true
   },
   {
@@ -592,7 +586,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Passionate about reducing inequitable access to healthcare through tech.",
     sideProjects: ["Biotech ML Research", "RAG Database Tool"],
     interests: ["Violin", "Healthcare", "Biotech"],
-    photoUrl: "",
+    photoUrl: "/profiles/marilyn_jia.jpg",
     isVerified: true
   },
   {
@@ -604,7 +598,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I want to strategically convert my skills into optimal profit and learn the startup process.",
     sideProjects: ["Cupertino City Hall Intern", "SJSU Data Analyst"],
     interests: ["Robotics", "AI", "Communication"],
-    photoUrl: "",
+    photoUrl: "/profiles/mark_shen.jpg",
     isVerified: true
   },
   {
@@ -616,7 +610,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Most tennis players switch to pickleball because tennis is too hard. I can muscle up.",
     sideProjects: ["Growth Agency (100M+ views)", "Content Automation"],
     interests: ["Weightlifting", "Calisthenics", "Pickleball"],
-    photoUrl: "",
+    photoUrl: "/profiles/marquis_wu.jpg",
     isVerified: true
   },
   {
@@ -628,7 +622,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I love meeting new individuals in a hands-on environment with like-minded peers!",
     sideProjects: ["VCIC Competition", "Business Development"],
     interests: ["Guitar", "Skiing", "Kaytranada"],
-    photoUrl: "",
+    photoUrl: "/profiles/matthew_chan.jpg",
     isVerified: true
   },
   {
@@ -640,7 +634,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I want to eventually pursue and scale my own startup ideas in the future.",
     sideProjects: ["Startup Engineering", "Health Optimization"],
     interests: ["Philosophy", "Hiking", "Clash Royale"],
-    photoUrl: "",
+    photoUrl: "/profiles/nicholas_tran.jpg",
     isVerified: true
   },
   {
@@ -652,7 +646,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I naturally spot gaps in products and enjoy brainstorming practical improvements.",
     sideProjects: ["Open-water Swimming", "Almost 10K Clash Royale trophies"],
     interests: ["Product Management", "UX", "Swimming"],
-    photoUrl: "",
+    photoUrl: "/profiles/nicole_espinoza.jpg",
     isVerified: true
   },
   {
@@ -664,7 +658,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Learning these highly valuable skills at the nation's #1 public university is a once in a lifetime opportunity.",
     sideProjects: ["Custom Major Design", "SCET Certificate"],
     interests: ["Entertainment", "Law", "Media"],
-    photoUrl: "",
+    photoUrl: "/profiles/paige_sumulong.jpg",
     isVerified: true
   },
   {
@@ -676,7 +670,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I want engineering to help make sustainable clothing. I'm focused on microorganisms.",
     sideProjects: ["Thermochromic Fiber", "Mylo at Bolt Threads"],
     interests: ["Singing", "Dancing", "Knitting"],
-    photoUrl: "",
+    photoUrl: "/profiles/patrice_crosby.jpg",
     isVerified: true
   },
   {
@@ -688,7 +682,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "Friends who participated in previous years found their experiences very impactful and valuable.",
     sideProjects: ["Business Psychology", "Social Sector Work"],
     interests: ["Consulting", "Behavior", "Strategy"],
-    photoUrl: "",
+    photoUrl: "/profiles/paulett_cardona_snapshot.jpg",
     isVerified: true
   },
   {
@@ -700,7 +694,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I've seen some of my startup ideas later implemented by others. Time to take my ideas seriously.",
     sideProjects: ["Film & Poetry", "Technical + Creative thinking"],
     interests: ["Engineering", "Film", "Poetry"],
-    photoUrl: "",
+    photoUrl: "/profiles/rana_alqahtani.jpg",
     isVerified: true
   },
   {
@@ -712,7 +706,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "It's very difficult to just meet people interested in startups from taking classes.",
     sideProjects: ["AI Startup Interest", "Direction change"],
     interests: ["Badminton", "Photography", "Digital Art"],
-    photoUrl: "",
+    photoUrl: "/profiles/ray_sun.jpg",
     isVerified: true
   },
   {
@@ -724,7 +718,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "My goal is to eventually do an IronMan before my time at Cal is over!",
     sideProjects: ["Portfolia Internship", "Startup idea in development"],
     interests: ["Running", "Impact Investing", "Strategy"],
-    photoUrl: "",
+    photoUrl: "/profiles/rhea_dutt.jpg",
     isVerified: true
   },
   {
@@ -736,7 +730,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I've learned how much stronger ideas are when pressure-tested through constant iteration.",
     sideProjects: ["Y-Combinator W26 Startup", "Pitchdeck Design"],
     interests: ["Healthcare", "Design", "Startups"],
-    photoUrl: "",
+    photoUrl: "/profiles/rishi_patari.jpg",
     isVerified: true
   },
   {
@@ -748,7 +742,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I love working in passionate teams and learning from my peers through the process.",
     sideProjects: ["United American Community Causes", "Disaster Relief"],
     interests: ["Brand Strategy", "Entertainment", "Social Impact"],
-    photoUrl: "",
+    photoUrl: "/profiles/sandhya_melpakkam.jpg",
     isVerified: true
   },
   {
@@ -760,7 +754,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "My experience gave me firsthand exposure to how data supports business operations.",
     sideProjects: ["Contract Management", "Database & Billing Processes"],
     interests: ["Data-driven Solutions", "Business Analytics", "Learning"],
-    photoUrl: "",
+    photoUrl: "/profiles/selena_lin.jpg",
     isVerified: true
   },
   {
@@ -772,7 +766,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I'm just trying to land a job while learning how startups actually work.",
     sideProjects: ["Sim Racing Setup", "90s Mercedes Restoration"],
     interests: ["Sim Racing", "Cars", "AI/ML"],
-    photoUrl: "",
+    photoUrl: "/profiles/shaharil_zaman.jpg",
     isVerified: true
   },
   {
@@ -784,7 +778,7 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I learn best not in traditional classroom but through collaboration with peers.",
     sideProjects: ["Data-driven thinking", "Group learning"],
     interests: ["Team Dinners", "Group Discussions", "Learning"],
-    photoUrl: "",
+    photoUrl: "/profiles/shreya_korlipara.jpg",
     isVerified: true
   },
   {
@@ -796,7 +790,115 @@ export const mockProfiles: UserProfile[] = [
     hotTake: "I want to leverage my research interests and make contribution to society in the future.",
     sideProjects: ["Music Technology Research", "Instrument Collection"],
     interests: ["Violin", "Yoga", "Cooking"],
-    photoUrl: "",
+    photoUrl: "/profiles/shu_wang.jpg",
+    isVerified: true
+  },
+  {
+    id: "67",
+    name: "Siddharth Chilamkur",
+    role: "4th Year",
+    company: "UC Berkeley - EECS & Economics",
+    bio: "Interned at NASA working on ML solutions for aviation and spacecraft including trajectories and autonomy. Seen ideas pitched and turned into real impact projects.",
+    hotTake: "NASA experience sparked my interest in the startup space for 0→1 innovation.",
+    sideProjects: ["NASA ML Intern", "Aviation & Spacecraft"],
+    interests: ["Aerospace", "Software", "Economics"],
+    photoUrl: "/profiles/siddharth_chilamkur.jpg",
+    isVerified: true
+  },
+  {
+    id: "68",
+    name: "Sreshta Yelisetti",
+    role: "2nd Year",
+    company: "UC Berkeley - Bioengineering & EECS",
+    bio: "Passionate about healthcare, technology, and entrepreneurship intersection. Worked with healthcare and biotech startups. Experience in wet lab, computational biology, and data projects.",
+    hotTake: "I want to create solutions that can directly improve patient outcomes.",
+    sideProjects: ["Healthcare Startups", "Computational Biology"],
+    interests: ["Healthcare", "Startups", "Patient Care"],
+    photoUrl: "/profiles/sreshta_yelisetti.jpg",
+    isVerified: true
+  },
+  {
+    id: "69",
+    name: "Sukhman Virk",
+    role: "Systems Engineer",
+    company: "Workday (3.5 years)",
+    bio: "Nearly a decade of systems engineering across Automotive (Honda), Banking, and Logistics. At Workday building enterprise systems handling world's most sensitive data.",
+    hotTake: "Building Revisian to tackle $30B data crisis in life sciences by catching $22M errors at origin.",
+    sideProjects: ["Revisian Startup", "Honda & Banking Systems"],
+    interests: ["Yoga", "Painting", "Dancing"],
+    photoUrl: "/profiles/sukhmanbir_virk.jpg",
+    isVerified: true
+  },
+  {
+    id: "70",
+    name: "Zoey Huang",
+    role: "Junior",
+    company: "UC Berkeley - Data Science",
+    bio: "From Taiwan. Won 1st place in Kaggle credit card default prediction. Developed AI plant care assistant with 95%+ accuracy. Selected for Google TechWise (10% acceptance).",
+    hotTake: "Reduced operational costs by 50% through workflow automation. Background in sales and consulting.",
+    sideProjects: ["Kaggle Winner", "AI Plant Assistant"],
+    interests: ["Street Markets", "Travel", "Cuisine"],
+    photoUrl: "/profiles/szulun_huang.jpg",
+    isVerified: true
+  },
+  {
+    id: "71",
+    name: "Tim Eigendorf",
+    role: "International Student",
+    company: "UC Berkeley BISP / TU Berlin - Civil Engineering",
+    bio: "From Wismar, Germany. Focus on project management, railway and maritime infrastructure with AI-driven innovation. Works at engineering office for Deutsche Bahn.",
+    hotTake: "AI will redefine workflows in construction just like CAD reshaped engineering. I want to shape that shift.",
+    sideProjects: ["Deutsche Bahn Projects", "AI Workflow Startup"],
+    interests: ["Sailing", "Backpacking", "Youth Association"],
+    photoUrl: "/profiles/tim_eigendorf.jpg",
+    isVerified: true
+  },
+  {
+    id: "72",
+    name: "Tomas Miyazono",
+    role: "4th Year",
+    company: "UC Berkeley - Environmental Economics & Policy",
+    bio: "Interested in renewable energy and emerging technologies. Done consulting projects for small local businesses. Curious what things look like from founder's side.",
+    hotTake: "The Bay Area is full of young companies doing exciting work in renewable energy.",
+    sideProjects: ["Local Business Consulting", "Renewable Energy"],
+    interests: ["Outdoors", "Soccer", "Clean Tech"],
+    photoUrl: "/profiles/tomas_miyazono.jpg",
+    isVerified: true
+  },
+  {
+    id: "73",
+    name: "Ty Sorenson",
+    role: "Student",
+    company: "UC Berkeley",
+    bio: "Passion for the ocean from growing up by the beach. Experiences in spearfishing and scuba diving. Catching dinner, being chased by seals, watching sharks swim.",
+    hotTake: "These moments have become ways for me to reflect on life below and above the surface.",
+    sideProjects: ["Spearfishing", "Junior Lifeguarding"],
+    interests: ["Surfing", "Scuba Diving", "Ocean"],
+    photoUrl: "/profiles/ty_sorenson.jpg",
+    isVerified: true
+  },
+  {
+    id: "74",
+    name: "Vijay Prakash",
+    role: "Grad Student",
+    company: "UC Berkeley - Data Science & Product Management",
+    bio: "Worked at hedge fund for 4 years after CS undergrad in India. Always refrained from exploring entrepreneurship due to misconceptions around capital required.",
+    hotTake: "I love that this class will help take an idea from conception to investor pitch in just four days.",
+    sideProjects: ["Hedge Fund Experience", "Product Management"],
+    interests: ["Soccer", "Badminton", "Puzzles"],
+    photoUrl: "/profiles/vijay_prakash.jpg",
+    isVerified: true
+  },
+  {
+    id: "75",
+    name: "Zainab Mohammad",
+    role: "Student",
+    company: "UC Berkeley",
+    bio: "Has 4 sisters (not as crazy as it sounds). No major interest in business but studying it as a tool to help change the world, particularly the education sector.",
+    hotTake: "I want to learn from my peers and see how their visionary ideas can inspire me!",
+    sideProjects: ["Education Sector Focus", "World Change"],
+    interests: ["Education", "Impact", "Learning"],
+    photoUrl: "/profiles/zainab_moohammad.jpg",
     isVerified: true
   }
 ];

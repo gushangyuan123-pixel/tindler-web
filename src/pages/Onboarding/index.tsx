@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Splash } from './Splash';
-import { SignUp } from './SignUp';
+import { ProfileChoice } from './ProfileChoice';
 import { ProfileCreation } from './ProfileCreation';
 import { useApp } from '../../context/AppContext';
 
-type OnboardingStep = 'splash' | 'signup' | 'profile';
+type OnboardingStep = 'splash' | 'choice' | 'profile';
 
 interface OnboardingFlowProps {
   onComplete: () => void;
@@ -13,13 +13,22 @@ interface OnboardingFlowProps {
 
 export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const [step, setStep] = useState<OnboardingStep>('splash');
-  const { setOnboarded, setCurrentUser } = useApp();
+  const { setOnboarded, setHasSelectedProfile, setCurrentUser } = useApp();
 
   const handleGetStarted = () => {
-    setStep('signup');
+    setStep('choice');
   };
 
-  const handleSignUpContinue = () => {
+  const handleUseExisting = () => {
+    // User wants to select from existing profiles
+    // Set onboarded=true so they go to ProfileSelection
+    // hasSelectedProfile stays false so they see the selection screen
+    setOnboarded(true);
+    onComplete();
+  };
+
+  const handleCreateNew = () => {
+    // User wants to create a new profile
     setStep('profile');
   };
 
@@ -39,14 +48,16 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     };
 
     setCurrentUser(userProfile);
+    // Set BOTH flags so user skips ProfileSelection and goes straight to Discover
     setOnboarded(true);
+    setHasSelectedProfile(true);
     onComplete();
   };
 
   const handleBack = () => {
     if (step === 'profile') {
-      setStep('signup');
-    } else if (step === 'signup') {
+      setStep('choice');
+    } else if (step === 'choice') {
       setStep('splash');
     }
   };
@@ -61,8 +72,11 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         transition={{ duration: 0.2 }}
       >
         {step === 'splash' && <Splash onGetStarted={handleGetStarted} />}
-        {step === 'signup' && (
-          <SignUp onContinue={handleSignUpContinue} />
+        {step === 'choice' && (
+          <ProfileChoice
+            onUseExisting={handleUseExisting}
+            onCreateNew={handleCreateNew}
+          />
         )}
         {step === 'profile' && (
           <ProfileCreation
@@ -77,4 +91,5 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
 export { Splash } from './Splash';
 export { SignUp } from './SignUp';
+export { ProfileChoice } from './ProfileChoice';
 export { ProfileCreation } from './ProfileCreation';

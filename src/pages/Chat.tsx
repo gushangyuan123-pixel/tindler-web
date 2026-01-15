@@ -4,9 +4,8 @@ import { motion } from 'framer-motion';
 import { ChevronLeft, MoreVertical, Send, User } from 'lucide-react';
 import { Avatar } from '../components/ui/Avatar';
 import { ChatBubble, ConversationStarter } from '../components/ChatBubble';
-import { Match, Message, apiMessageToMessage } from '../services/types';
+import { Match, Message } from '../services/types';
 import { generateConversationStarters } from '../utils/aiStarters';
-import apiService from '../services/api';
 import { useApp } from '../context/AppContext';
 
 export function Chat() {
@@ -30,8 +29,21 @@ export function Chat() {
     : [];
 
   useEffect(() => {
+    // Load messages from localStorage for this match
     if (matchId) {
-      loadMessages();
+      const savedMessages = localStorage.getItem(`chat_messages_${matchId}`);
+      if (savedMessages) {
+        try {
+          const parsed = JSON.parse(savedMessages);
+          setMessages(parsed.map((m: any) => ({
+            ...m,
+            createdAt: new Date(m.createdAt),
+          })));
+        } catch (e) {
+          console.error('Failed to parse saved messages:', e);
+        }
+      }
+      setIsLoading(false);
     }
   }, [matchId]);
 
@@ -39,64 +51,38 @@ export function Chat() {
     scrollToBottom();
   }, [messages]);
 
-  const loadMessages = async () => {
-    if (!matchId) return;
-
-    try {
-      setIsLoading(true);
-      const response = await apiService.getMessages(parseInt(matchId));
-      if (response.success) {
-        setMessages(response.messages.map(apiMessageToMessage));
-      }
-    } catch (err) {
-      console.error('Failed to load messages:', err);
-    } finally {
-      setIsLoading(false);
+  // Save messages to localStorage when they change
+  useEffect(() => {
+    if (matchId && messages.length > 0) {
+      localStorage.setItem(`chat_messages_${matchId}`, JSON.stringify(messages));
     }
-  };
+  }, [matchId, messages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleSend = async () => {
+  const handleSend = () => {
     if (!messageText.trim() || !matchId) return;
 
     const text = messageText.trim();
     setMessageText('');
-    setIsSending(true);
 
-    // Optimistic update
-    const optimisticMessage: Message = {
-      id: `temp-${Date.now()}`,
+    // Create new message (local only - no API call)
+    const newMessage: Message = {
+      id: `msg-${Date.now()}`,
       matchId: parseInt(matchId),
       senderId: 'current-user',
       content: text,
       createdAt: new Date(),
       isFromCurrentUser: true,
     };
-    setMessages((prev) => [...prev, optimisticMessage]);
 
-    try {
-      const response = await apiService.sendMessage(parseInt(matchId), text);
-      if (response.success && response.message) {
-        // Replace optimistic message with real one
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.id === optimisticMessage.id
-              ? apiMessageToMessage(response.message)
-              : m
-          )
-        );
-        updateMatchMessage(match?.id || '', text);
-      }
-    } catch (err) {
-      console.error('Failed to send message:', err);
-      // Remove optimistic message on error
-      setMessages((prev) => prev.filter((m) => m.id !== optimisticMessage.id));
-    } finally {
-      setIsSending(false);
-    }
+    // Add to messages
+    setMessages((prev) => [...prev, newMessage]);
+
+    // Update match's last message in app state
+    updateMatchMessage(match?.id || '', text);
   };
 
   const handleStarterClick = (starter: string) => {

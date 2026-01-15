@@ -31,3 +31,4 @@ dist-ssr
 # Build scripts
 *.bat
 tsconfig.node.tsbuildinfo
+.vercel

@@ -70,7 +70,7 @@ export function ProfileCard({
             <img
               src={profile.photoUrl || `https://i.pravatar.cc/400?u=${profile.id}`}
               alt={profile.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover object-top"
               onError={(e) => {
                 // Fallback if image fails to load
                 e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name)}&background=4D4D4D&color=fff&size=400`;

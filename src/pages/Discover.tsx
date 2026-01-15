@@ -18,6 +18,7 @@ export function Discover() {
     removeProfile,
     showMatchPopup,
     latestMatch,
+    latestMatchFull,
     showMatch,
     hideMatchPopup,
     incrementLikes,
@@ -57,15 +58,17 @@ export function Discover() {
     // 50% chance of match (simulating mutual interest)
     const isMatch = Math.random() > 0.5;
     if (isMatch) {
-      showMatch(profile);
-      // Add to matches
-      addMatch({
+      // Create match object first
+      const newMatch = {
         id: profile.id,
         matchId: Date.now(),
         profile,
         matchedAt: new Date(),
         unreadCount: 0,
-      });
+      };
+      // Add to matches and show popup with match data
+      addMatch(newMatch);
+      showMatch(profile, newMatch);
     }
   };
 
@@ -74,8 +77,14 @@ export function Discover() {
   };
 
   const handleSendMessage = () => {
-    hideMatchPopup();
-    navigate('/matches');
+    if (latestMatchFull) {
+      hideMatchPopup();
+      // Navigate directly to chat with match data
+      navigate(`/chat/${latestMatchFull.matchId}`, { state: { match: latestMatchFull } });
+    } else {
+      hideMatchPopup();
+      navigate('/matches');
+    }
   };
 
   const handleKeepSwiping = () => {

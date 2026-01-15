@@ -9,6 +9,7 @@ interface AppState {
   profiles: UserProfile[];
   showMatchPopup: boolean;
   latestMatch: UserProfile | null;
+  latestMatchFull: Match | null;
   likesCount: number;
   selectedInterests: Set<string>;
   selectedRoles: Set<string>;
@@ -22,7 +23,7 @@ type AppAction =
   | { type: 'ADD_MATCH'; payload: Match }
   | { type: 'SET_PROFILES'; payload: UserProfile[] }
   | { type: 'REMOVE_PROFILE'; payload: string }
-  | { type: 'SHOW_MATCH_POPUP'; payload: UserProfile }
+  | { type: 'SHOW_MATCH_POPUP'; payload: { profile: UserProfile; match: Match } }
   | { type: 'HIDE_MATCH_POPUP' }
   | { type: 'INCREMENT_LIKES' }
   | { type: 'SET_LIKES_COUNT'; payload: number }
@@ -39,6 +40,7 @@ const initialState: AppState = {
   profiles: [],
   showMatchPopup: false,
   latestMatch: null,
+  latestMatchFull: null,
   likesCount: 0,
   selectedInterests: new Set(),
   selectedRoles: new Set(),
@@ -71,10 +73,15 @@ function appReducer(state: AppState, action: AppAction): AppState {
       };
 
     case 'SHOW_MATCH_POPUP':
-      return { ...state, showMatchPopup: true, latestMatch: action.payload };
+      return {
+        ...state,
+        showMatchPopup: true,
+        latestMatch: action.payload.profile,
+        latestMatchFull: action.payload.match,
+      };
 
     case 'HIDE_MATCH_POPUP':
-      return { ...state, showMatchPopup: false, latestMatch: null };
+      return { ...state, showMatchPopup: false, latestMatch: null, latestMatchFull: null };
 
     case 'INCREMENT_LIKES':
       return { ...state, likesCount: state.likesCount + 1 };
@@ -132,7 +139,7 @@ interface AppContextType extends AppState {
   addMatch: (match: Match) => void;
   setProfiles: (profiles: UserProfile[]) => void;
   removeProfile: (profileId: string) => void;
-  showMatch: (profile: UserProfile) => void;
+  showMatch: (profile: UserProfile, match: Match) => void;
   hideMatchPopup: () => void;
   incrementLikes: () => void;
   toggleInterest: (interest: string) => void;
@@ -178,8 +185,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'REMOVE_PROFILE', payload: profileId });
   }, []);
 
-  const showMatch = useCallback((profile: UserProfile) => {
-    dispatch({ type: 'SHOW_MATCH_POPUP', payload: profile });
+  const showMatch = useCallback((profile: UserProfile, match: Match) => {
+    dispatch({ type: 'SHOW_MATCH_POPUP', payload: { profile, match } });
   }, []);
 
   const hideMatchPopup = useCallback(() => {
