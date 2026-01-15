@@ -1,10 +1,9 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Zap, User } from 'lucide-react';
+import { X, Zap } from 'lucide-react';
 import { UserProfile } from '../services/types';
-import { VerifiedBadge } from './ui/Badge';
 import { InterestList } from './InterestTag';
-import { useSwipe, SwipeState } from '../hooks/useSwipe';
+import { useSwipe } from '../hooks/useSwipe';
 
 interface ProfileCardProps {
   profile: UserProfile;
@@ -67,23 +66,32 @@ export function ProfileCard({
         <div className="relative h-[420px] bg-medium-gray">
           {/* Profile photo - full bleed */}
           <img
-            src={profile.photoUrl || `https://i.pravatar.cc/400?u=${profile.id}`}
+            src={profile.photoUrl || `https://closeai.mba/tindler-profiles/${profile.id}.jpg`}
             alt={profile.name}
             className="absolute inset-0 w-full h-full object-cover object-center"
             onError={(e) => {
-              e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name)}&background=4D4D4D&color=fff&size=400`;
+              // Try alternate URL format, then fallback to avatar
+              const target = e.currentTarget;
+              if (!target.dataset.tried) {
+                target.dataset.tried = 'true';
+                target.src = `https://closeai.mba/tindler-profiles/${profile.id.toLowerCase().replace(/\s+/g, '_')}.jpg`;
+              } else {
+                target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name)}&background=4D4D4D&color=fff&size=400`;
+              }
             }}
           />
 
           {/* Gradient overlay for text readability */}
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
 
-          {/* Badges */}
-          <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-electric-blue text-white text-[10px] font-mono uppercase tracking-wider rounded-sm">
+          {/* Badges - VERIFIED (green) left, BMOE 2026 (yellow) right */}
+          <div className="absolute top-4 left-4 right-4 z-20 flex justify-between items-start">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-success-green text-black text-[10px] font-mono uppercase tracking-wider rounded-sm">
+              VERIFIED MEMBER
+            </span>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-acid-yellow text-black text-[10px] font-mono uppercase tracking-wider rounded-sm">
               BMOE 2026
             </span>
-            {profile.isVerified && <VerifiedBadge />}
           </div>
 
           {/* Profile info - overlaid at bottom */}
