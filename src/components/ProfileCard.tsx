@@ -63,20 +63,20 @@ export function ProfileCard({
 
       {/* Card content */}
       <div className="bg-dark-gray rounded-lg overflow-hidden shadow-brutalist-lg">
-        {/* Profile image area */}
-        <div className="relative h-[420px] bg-gradient-to-b from-medium-gray/80 to-dark-gray flex flex-col">
-          {/* Profile photo */}
-          <div className="flex-1 relative overflow-hidden">
-            <img
-              src={profile.photoUrl || `https://i.pravatar.cc/400?u=${profile.id}`}
-              alt={profile.name}
-              className="w-full h-full object-cover object-top"
-              onError={(e) => {
-                // Fallback if image fails to load
-                e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name)}&background=4D4D4D&color=fff&size=400`;
-              }}
-            />
-          </div>
+        {/* Profile image area - full card with overlay */}
+        <div className="relative h-[420px] bg-medium-gray">
+          {/* Profile photo - full bleed */}
+          <img
+            src={profile.photoUrl || `https://i.pravatar.cc/400?u=${profile.id}`}
+            alt={profile.name}
+            className="absolute inset-0 w-full h-full object-cover object-center"
+            onError={(e) => {
+              e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name)}&background=4D4D4D&color=fff&size=400`;
+            }}
+          />
+
+          {/* Gradient overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
 
           {/* Verified badge */}
           {profile.isVerified && (
@@ -85,12 +85,12 @@ export function ProfileCard({
             </div>
           )}
 
-          {/* Profile info - at bottom with gradient background */}
-          <div className="relative z-10 p-5 bg-gradient-to-t from-black via-black/90 to-transparent">
-            <h2 className="text-2xl font-black text-white uppercase mb-1">
+          {/* Profile info - overlaid at bottom */}
+          <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
+            <h2 className="text-2xl font-black text-white uppercase mb-1 drop-shadow-lg">
               {profile.name}
             </h2>
-            <p className="text-xs font-mono text-light-gray uppercase tracking-wider mb-3">
+            <p className="text-xs font-mono text-light-gray uppercase tracking-wider mb-3 drop-shadow-md">
               {profile.role} @ {profile.company}
             </p>
 
@@ -98,7 +98,7 @@ export function ProfileCard({
             {profile.hotTake && (
               <div className="flex gap-2 mb-3">
                 <div className="w-1 bg-acid-yellow rounded-full flex-shrink-0" />
-                <p className="text-sm text-white/90 line-clamp-2 italic">
+                <p className="text-sm text-white/90 line-clamp-2 italic drop-shadow-md">
                   "{profile.hotTake}"
                 </p>
               </div>
