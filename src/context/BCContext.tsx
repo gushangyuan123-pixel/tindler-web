@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useReducer, ReactNode, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, ReactNode, useCallback, useEffect, useState } from 'react';
 import { BCUserType, BCMemberProfile, BCApplicantProfile, BCMatch, BCMessage } from '../services/types';
+import bcApiService from '../services/bcApi';
 
 const STORAGE_KEY = 'tindler_bc_state';
 
@@ -26,6 +27,11 @@ interface BCState {
   // UI state
   showMatchPopup: boolean;
   latestMatch: BCMatch | null;
+
+  // API state
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  apiUser: any | null;  // Raw user data from API
 }
 
 // Load state from localStorage
@@ -98,7 +104,11 @@ type BCAction =
   | { type: 'SHOW_MATCH_POPUP'; payload: BCMatch }
   | { type: 'HIDE_MATCH_POPUP' }
   | { type: 'ADD_MESSAGE'; payload: { matchId: string; message: BCMessage } }
-  | { type: 'RESET_BC_STATE' };
+  | { type: 'RESET_BC_STATE' }
+  | { type: 'SET_AUTHENTICATED'; payload: boolean }
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_API_USER'; payload: any }
+  | { type: 'LOAD_FROM_API'; payload: { userType: BCUserType | null; hasCompletedSetup: boolean; profile: any | null; apiUser: any } };
 
 const defaultState: BCState = {
   userType: null,
@@ -112,6 +122,9 @@ const defaultState: BCState = {
   matchedApplicantIds: [],
   showMatchPopup: false,
   latestMatch: null,
+  isAuthenticated: false,
+  isLoading: false,
+  apiUser: null,
 };
 
 // Merge saved state with defaults
@@ -204,7 +217,29 @@ function bcReducer(state: BCState, action: BCAction): BCState {
     }
 
     case 'RESET_BC_STATE':
-      return defaultState;
+      return { ...defaultState, isAuthenticated: state.isAuthenticated, apiUser: null };
+
+    case 'SET_AUTHENTICATED':
+      return { ...state, isAuthenticated: action.payload };
+
+    case 'SET_LOADING':
+      return { ...state, isLoading: action.payload };
+
+    case 'SET_API_USER':
+      return { ...state, apiUser: action.payload };
+
+    case 'LOAD_FROM_API': {
+      const { userType, hasCompletedSetup, profile, apiUser } = action.payload;
+      return {
+        ...state,
+        userType,
+        hasCompletedSetup,
+        currentProfile: profile,
+        apiUser,
+        isAuthenticated: true,
+        isLoading: false,
+      };
+    }
 
     default:
       return state;
@@ -228,6 +263,8 @@ interface BCContextType extends BCState {
   addMessage: (matchId: string, message: BCMessage) => void;
   resetBCState: () => void;
   getAvailableProfiles: () => (BCMemberProfile | BCApplicantProfile)[];
+  loadUserFromAPI: () => Promise<void>;
+  logout: () => Promise<void>;
   isApplicant: boolean;
   isBCMember: boolean;
   hasMatch: boolean;
@@ -238,7 +275,89 @@ const BCContext = createContext<BCContextType | null>(null);
 export function BCProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(bcReducer, initialState);
 
-  // Save state to localStorage whenever important state changes
+  // Convert API profile to frontend format
+  const convertAPIProfile = (profile: any, userType: BCUserType): BCMemberProfile | BCApplicantProfile | null => {
+    if (!profile) return null;
+
+    if (userType === 'bc_member') {
+      return {
+        id: String(profile.id),
+        name: profile.user?.name || '',
+        photoUrl: profile.user?.photo_url || '/profiles/default.jpg',
+        year: profile.year,
+        major: profile.major,
+        semestersInBC: profile.semesters_in_bc,
+        areasOfExpertise: profile.areas_of_expertise || [],
+        availability: profile.availability,
+        bio: profile.bio,
+        projectExperience: profile.project_experience,
+      };
+    } else {
+      return {
+        id: String(profile.id),
+        name: profile.user?.name || '',
+        photoUrl: profile.user?.photo_url || '/profiles/default.jpg',
+        role: profile.role,
+        whyBC: profile.why_bc,
+        relevantExperience: profile.relevant_experience,
+        interests: profile.interests || [],
+      };
+    }
+  };
+
+  // Load user data from API
+  const loadUserFromAPI = useCallback(async () => {
+    if (!bcApiService.isAuthenticated()) {
+      dispatch({ type: 'SET_AUTHENTICATED', payload: false });
+      return;
+    }
+
+    dispatch({ type: 'SET_LOADING', payload: true });
+
+    try {
+      const userData = await bcApiService.getCurrentUser();
+      const userType = userData.user_type as BCUserType | null;
+      const profile = userData.profile ? convertAPIProfile(userData.profile, userType!) : null;
+
+      dispatch({
+        type: 'LOAD_FROM_API',
+        payload: {
+          userType,
+          hasCompletedSetup: userData.has_completed_setup,
+          profile,
+          apiUser: userData,
+        },
+      });
+    } catch (error) {
+      console.error('Failed to load user from API:', error);
+      dispatch({ type: 'SET_LOADING', payload: false });
+      // Clear invalid token
+      bcApiService.clearToken();
+      dispatch({ type: 'SET_AUTHENTICATED', payload: false });
+    }
+  }, []);
+
+  // Logout function
+  const logout = useCallback(async () => {
+    try {
+      await bcApiService.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+    bcApiService.clearToken();
+    dispatch({ type: 'RESET_BC_STATE' });
+    dispatch({ type: 'SET_AUTHENTICATED', payload: false });
+    localStorage.removeItem(STORAGE_KEY);
+  }, []);
+
+  // Check authentication on mount
+  useEffect(() => {
+    if (bcApiService.isAuthenticated()) {
+      loadUserFromAPI();
+    }
+  }, [loadUserFromAPI]);
+
+  // Save state to localStorage whenever important state changes (for demo mode / offline)
   useEffect(() => {
     saveState(state);
   }, [
@@ -351,6 +470,8 @@ export function BCProvider({ children }: { children: ReactNode }) {
         addMessage,
         resetBCState,
         getAvailableProfiles,
+        loadUserFromAPI,
+        logout,
         isApplicant,
         isBCMember,
         hasMatch,

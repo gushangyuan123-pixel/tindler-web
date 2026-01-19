@@ -1,18 +1,21 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Coffee, Loader } from 'lucide-react';
 import bcApiService from '../../services/bcApi';
+import { useBC } from '../../context/BCContext';
 
 export function BCAuthCallback() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { loadUserFromAPI } = useBC();
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const token = searchParams.get('token');
-    const error = searchParams.get('error');
+    const errorParam = searchParams.get('error');
 
-    if (error) {
-      console.error('Auth error:', error);
+    if (errorParam) {
+      console.error('Auth error:', errorParam);
       navigate('/bc?error=auth_failed');
       return;
     }
@@ -21,29 +24,23 @@ export function BCAuthCallback() {
       // Store the token
       bcApiService.setToken(token);
 
-      // Fetch user data and redirect appropriately
-      bcApiService.getCurrentUser()
-        .then((user) => {
-          if (user.has_completed_setup) {
-            // User already has a profile, go to discover
-            navigate('/bc/discover');
-          } else if (user.user_type) {
-            // User selected role but hasn't completed setup
-            navigate('/bc/setup');
-          } else {
-            // New user, go to role selection
-            navigate('/bc');
-          }
+      // Load user into context, then navigate based on user state
+      loadUserFromAPI()
+        .then(() => {
+          // The context will have the user data now
+          // Let BCRoleSelection handle the redirect based on state
+          navigate('/bc');
         })
         .catch((err) => {
-          console.error('Failed to fetch user:', err);
-          navigate('/bc');
+          console.error('Failed to load user:', err);
+          setError('Failed to load user data');
+          navigate('/bc?error=auth_failed');
         });
     } else {
       // No token, redirect to login
       navigate('/bc');
     }
-  }, [searchParams, navigate]);
+  }, [searchParams, navigate, loadUserFromAPI]);
 
   return (
     <div className="min-h-screen bg-dark-gray flex flex-col items-center justify-center">

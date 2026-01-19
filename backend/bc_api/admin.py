@@ -3,6 +3,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils import timezone
 from django.utils.html import format_html
 from .models import User, BCMemberProfile, BCApplicantProfile, BCMatch, BCMessage, BCSwipe
+from .emails import send_match_confirmed_notification
 
 
 @admin.register(User)
@@ -164,6 +165,8 @@ class BCMatchAdmin(admin.ModelAdmin):
             match.applicant.has_been_matched = True
             match.applicant.save()
             match.save()
+            # Send confirmation email
+            send_match_confirmed_notification(match)
             count += 1
         self.message_user(request, f'{count} match(es) confirmed successfully.')
 
@@ -192,6 +195,8 @@ class BCMatchAdmin(admin.ModelAdmin):
                 if obj.status == 'confirmed':
                     obj.applicant.has_been_matched = True
                     obj.applicant.save()
+                    # Send confirmation email
+                    send_match_confirmed_notification(obj)
         super().save_model(request, obj, form, change)
 
 

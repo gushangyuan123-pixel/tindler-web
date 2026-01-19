@@ -3,13 +3,19 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect
 from django.conf import settings
 from django.views import View
 from django.http import HttpResponse
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+import uuid
+import os
 
 from .models import User, BCMemberProfile, BCApplicantProfile, BCMatch, BCMessage, BCSwipe
+from .emails import send_match_notification, send_match_confirmed_notification, send_new_message_notification
 from .serializers import (
     UserSerializer,
     BCMemberProfileSerializer,
@@ -57,6 +63,55 @@ class CurrentUserView(APIView):
         request.user.user_type = user_type
         request.user.save()
         return Response(UserSerializer(request.user).data)
+
+
+class PhotoUploadView(APIView):
+    """Handle photo uploads for user profiles."""
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        if 'photo' not in request.FILES:
+            return Response(
+                {'error': 'No photo file provided'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        photo = request.FILES['photo']
+
+        # Validate file type
+        allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+        if photo.content_type not in allowed_types:
+            return Response(
+                {'error': 'Invalid file type. Allowed: JPEG, PNG, GIF, WebP'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Validate file size (max 5MB)
+        if photo.size > 5 * 1024 * 1024:
+            return Response(
+                {'error': 'File too large. Maximum size is 5MB'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Generate unique filename
+        ext = os.path.splitext(photo.name)[1].lower()
+        filename = f"profiles/{request.user.id}_{uuid.uuid4().hex}{ext}"
+
+        # Save file
+        path = default_storage.save(filename, ContentFile(photo.read()))
+
+        # Build full URL
+        photo_url = f"{settings.MEDIA_URL}{path}"
+
+        # Update user's photo_url
+        request.user.photo_url = photo_url
+        request.user.save()
+
+        return Response({
+            'photo_url': photo_url,
+            'message': 'Photo uploaded successfully'
+        })
 
 
 class BCMemberProfileViewSet(viewsets.ModelViewSet):
@@ -260,6 +315,9 @@ class SwipeView(APIView):
                         )
                         # NOTE: applicant is NOT marked as matched yet
                         # Admin will mark them as matched when confirming
+
+                        # Send email notifications
+                        send_match_notification(match)
 
                         match_created = True
                         match_data = BCMatchSerializer(match).data

@@ -25,7 +25,7 @@ class BCMemberProfileSerializer(serializers.ModelSerializer):
 class BCMemberProfileCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating/updating BC member profiles."""
     name = serializers.CharField(write_only=True)
-    photo_url = serializers.URLField(write_only=True, required=False, allow_blank=True)
+    photo_url = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     class Meta:
         model = BCMemberProfile
@@ -83,7 +83,7 @@ class BCApplicantProfileSerializer(serializers.ModelSerializer):
 class BCApplicantProfileCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating/updating applicant profiles."""
     name = serializers.CharField(write_only=True)
-    photo_url = serializers.URLField(write_only=True, required=False, allow_blank=True)
+    photo_url = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     class Meta:
         model = BCApplicantProfile

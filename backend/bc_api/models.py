@@ -91,12 +91,13 @@ class BCMemberProfile(models.Model):
 class BCApplicantProfile(models.Model):
     """Profile for applicants seeking coffee chats."""
     ROLE_CHOICES = [
-        ('Undergrad Freshman', 'Undergrad Freshman'),
-        ('Undergrad Sophomore', 'Undergrad Sophomore'),
-        ('Undergrad Junior', 'Undergrad Junior'),
-        ('Undergrad Senior', 'Undergrad Senior'),
+        ('Freshman', 'Freshman'),
+        ('Sophomore', 'Sophomore'),
+        ('Junior', 'Junior'),
+        ('Senior', 'Senior'),
         ('MBA1', 'MBA1'),
         ('MBA2', 'MBA2'),
+        ('Graduate', 'Graduate'),
     ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='applicant_profile')

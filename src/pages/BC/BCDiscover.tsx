@@ -1,7 +1,7 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { X, Coffee, RefreshCw } from 'lucide-react';
+import { X, Coffee, RefreshCw, Loader } from 'lucide-react';
 import { useBC } from '../../context/BCContext';
 import { BCHeader } from '../../components/BC/BCHeader';
 import { BCProfileCard } from '../../components/BC/BCProfileCard';
@@ -9,6 +9,7 @@ import { BCMatchPopup } from '../../components/BC/BCMatchPopup';
 import { useSwipe } from '../../hooks/useSwipe';
 import { BCMatch, BCMemberProfile, BCApplicantProfile } from '../../services/types';
 import { mockBCMembers, mockBCApplicants, shuffleBCProfiles } from '../../data/mockBCProfiles';
+import bcApiService from '../../services/bcApi';
 
 export function BCDiscover() {
   const navigate = useNavigate();
@@ -32,8 +33,10 @@ export function BCDiscover() {
     latestMatch,
     likedIds,
     setProfiles,
+    isAuthenticated,
   } = useBC();
 
+  const [isSwiping, setIsSwiping] = useState(false);
   const availableProfiles = getAvailableProfiles();
   const topProfile = availableProfiles[0];
 
@@ -48,61 +51,122 @@ export function BCDiscover() {
     }
   }, [userType, hasCompletedSetup, isApplicant, applicantMatch, navigate]);
 
-  // Simulate matching logic (in real app, this would check backend)
-  const checkForMatch = useCallback((profileId: string): boolean => {
+  // Simulate matching logic for demo mode
+  const checkForMatchDemo = useCallback((profileId: string): boolean => {
     // Simulate 40% match rate for demo purposes
     return Math.random() < 0.4;
   }, []);
 
-  const handleSwipeRight = useCallback(() => {
-    if (!topProfile || !currentProfile) return;
+  const handleSwipeRight = useCallback(async () => {
+    if (!topProfile || !currentProfile || isSwiping) return;
 
-    addLikedId(topProfile.id);
-    removeProfile(topProfile.id);
+    setIsSwiping(true);
 
-    // Check for match
-    const isMatch = checkForMatch(topProfile.id);
+    try {
+      if (isAuthenticated) {
+        // Use API for authenticated users
+        const result = await bcApiService.swipe(parseInt(topProfile.id), 'like');
 
-    if (isMatch) {
-      const match: BCMatch = {
-        id: `match-${Date.now()}`,
-        applicant: isApplicant
-          ? (currentProfile as BCApplicantProfile)
-          : (topProfile as BCApplicantProfile),
-        bcMember: isApplicant
-          ? (topProfile as BCMemberProfile)
-          : (currentProfile as BCMemberProfile),
-        matchedAt: new Date(),
-        messages: [],
-      };
+        addLikedId(topProfile.id);
+        removeProfile(topProfile.id);
 
-      if (isApplicant) {
-        setApplicantMatch(match);
+        // Check if there's a match from API response
+        if (result.match) {
+          const match: BCMatch = {
+            id: String(result.match.id),
+            applicant: isApplicant
+              ? (currentProfile as BCApplicantProfile)
+              : (topProfile as BCApplicantProfile),
+            bcMember: isApplicant
+              ? (topProfile as BCMemberProfile)
+              : (currentProfile as BCMemberProfile),
+            matchedAt: new Date(result.match.matched_at || new Date()),
+            messages: [],
+            status: result.match.status, // 'pending' until admin confirms
+          };
+
+          if (isApplicant) {
+            setApplicantMatch(match);
+          } else {
+            addMemberMatch(match);
+            addMatchedApplicantId(topProfile.id);
+          }
+
+          showMatch(match);
+        }
       } else {
-        addMemberMatch(match);
-        addMatchedApplicantId(topProfile.id);
-      }
+        // Demo mode - use local simulation
+        addLikedId(topProfile.id);
+        removeProfile(topProfile.id);
 
-      showMatch(match);
+        const isMatch = checkForMatchDemo(topProfile.id);
+
+        if (isMatch) {
+          const match: BCMatch = {
+            id: `match-${Date.now()}`,
+            applicant: isApplicant
+              ? (currentProfile as BCApplicantProfile)
+              : (topProfile as BCApplicantProfile),
+            bcMember: isApplicant
+              ? (topProfile as BCMemberProfile)
+              : (currentProfile as BCMemberProfile),
+            matchedAt: new Date(),
+            messages: [],
+          };
+
+          if (isApplicant) {
+            setApplicantMatch(match);
+          } else {
+            addMemberMatch(match);
+            addMatchedApplicantId(topProfile.id);
+          }
+
+          showMatch(match);
+        }
+      }
+    } catch (error) {
+      console.error('Swipe failed:', error);
+      // Still update local state on error to prevent stuck UI
+      addLikedId(topProfile.id);
+      removeProfile(topProfile.id);
+    } finally {
+      setIsSwiping(false);
     }
   }, [
     topProfile,
     currentProfile,
     isApplicant,
+    isAuthenticated,
+    isSwiping,
     addLikedId,
     removeProfile,
-    checkForMatch,
+    checkForMatchDemo,
     setApplicantMatch,
     addMemberMatch,
     addMatchedApplicantId,
     showMatch,
   ]);
 
-  const handleSwipeLeft = useCallback(() => {
-    if (!topProfile) return;
-    addPassedId(topProfile.id);
-    removeProfile(topProfile.id);
-  }, [topProfile, addPassedId, removeProfile]);
+  const handleSwipeLeft = useCallback(async () => {
+    if (!topProfile || isSwiping) return;
+
+    setIsSwiping(true);
+
+    try {
+      if (isAuthenticated) {
+        await bcApiService.swipe(parseInt(topProfile.id), 'pass');
+      }
+      addPassedId(topProfile.id);
+      removeProfile(topProfile.id);
+    } catch (error) {
+      console.error('Swipe failed:', error);
+      // Still update local state on error
+      addPassedId(topProfile.id);
+      removeProfile(topProfile.id);
+    } finally {
+      setIsSwiping(false);
+    }
+  }, [topProfile, isAuthenticated, isSwiping, addPassedId, removeProfile]);
 
   const { state: swipeState, handlers, swipeLeft, swipeRight } = useSwipe({
     onSwipeLeft: handleSwipeLeft,
@@ -123,12 +187,57 @@ export function BCDiscover() {
     }
   };
 
-  const handleRefresh = () => {
-    // Reset profiles for demo
-    if (isApplicant) {
-      setProfiles(shuffleBCProfiles(mockBCMembers));
+  const handleRefresh = async () => {
+    if (isAuthenticated) {
+      // Fetch fresh profiles from API
+      try {
+        const discoverResponse = await bcApiService.getDiscoverProfiles();
+        const discoverProfiles = discoverResponse.profiles || discoverResponse;
+        const converted = discoverProfiles.map((p: any) => {
+          if (isApplicant) {
+            // User is applicant, viewing BC members
+            return {
+              id: String(p.user?.id || p.id),  // Use user ID for API swipes
+              name: p.user?.name || '',
+              photoUrl: p.user?.photo_url || '/profiles/default.jpg',
+              year: p.year,
+              major: p.major,
+              semestersInBC: p.semesters_in_bc,
+              areasOfExpertise: p.areas_of_expertise || [],
+              availability: p.availability,
+              bio: p.bio,
+              projectExperience: p.project_experience,
+            };
+          } else {
+            // User is BC member, viewing applicants
+            return {
+              id: String(p.user?.id || p.id),  // Use user ID for API swipes
+              name: p.user?.name || '',
+              photoUrl: p.user?.photo_url || '/profiles/default.jpg',
+              role: p.role,
+              whyBC: p.why_bc,
+              relevantExperience: p.relevant_experience,
+              interests: p.interests || [],
+            };
+          }
+        });
+        setProfiles(converted);
+      } catch (error) {
+        console.error('Failed to refresh profiles:', error);
+        // Fallback to mock data
+        if (isApplicant) {
+          setProfiles(shuffleBCProfiles(mockBCMembers));
+        } else {
+          setProfiles(shuffleBCProfiles(mockBCApplicants));
+        }
+      }
     } else {
-      setProfiles(shuffleBCProfiles(mockBCApplicants));
+      // Demo mode - use mock data
+      if (isApplicant) {
+        setProfiles(shuffleBCProfiles(mockBCMembers));
+      } else {
+        setProfiles(shuffleBCProfiles(mockBCApplicants));
+      }
     }
   };
 
@@ -200,20 +309,22 @@ export function BCDiscover() {
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={swipeLeft}
-            className="w-16 h-16 bg-white border-3 border-black shadow-brutalist
-                       flex items-center justify-center
-                       hover:bg-hot-pink hover:text-white transition-colors"
+            disabled={isSwiping}
+            className={`w-16 h-16 border-3 border-black shadow-brutalist
+                       flex items-center justify-center transition-colors
+                       ${isSwiping ? 'bg-gray-300 cursor-not-allowed' : 'bg-white hover:bg-hot-pink hover:text-white'}`}
           >
-            <X className="w-8 h-8" />
+            {isSwiping ? <Loader className="w-8 h-8 animate-spin" /> : <X className="w-8 h-8" />}
           </motion.button>
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={swipeRight}
-            className="w-16 h-16 bg-cyan-500 border-3 border-black shadow-brutalist
-                       flex items-center justify-center
-                       hover:bg-cyan-400 transition-colors"
+            disabled={isSwiping}
+            className={`w-16 h-16 border-3 border-black shadow-brutalist
+                       flex items-center justify-center transition-colors
+                       ${isSwiping ? 'bg-gray-300 cursor-not-allowed' : 'bg-cyan-500 hover:bg-cyan-400'}`}
           >
-            <Coffee className="w-8 h-8 text-black" />
+            {isSwiping ? <Loader className="w-8 h-8 animate-spin text-black" /> : <Coffee className="w-8 h-8 text-black" />}
           </motion.button>
         </div>
         <p className="text-center mt-3 text-medium-gray font-mono text-xs">

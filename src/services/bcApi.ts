@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
-const BC_API_URL = 'http://localhost:8000';
+// Use environment variable for API URL, fallback to localhost for development
+const BC_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const BC_TOKEN_KEY = 'bc_auth_token';
 
@@ -80,6 +81,19 @@ class BCAPIService {
 
   async updateUserType(userType: 'applicant' | 'bc_member') {
     const response = await this.client.patch('/api/me/', { user_type: userType });
+    return response.data;
+  }
+
+  // Photo upload
+  async uploadPhoto(file: File): Promise<{ photo_url: string }> {
+    const formData = new FormData();
+    formData.append('photo', file);
+
+    const response = await this.client.post('/api/upload-photo/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   }
 

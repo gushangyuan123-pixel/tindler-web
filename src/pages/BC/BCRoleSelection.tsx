@@ -1,16 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Users, Briefcase, LogIn, AlertCircle } from 'lucide-react';
+import { Users, Briefcase, LogIn, AlertCircle, Lock, Mail, Loader } from 'lucide-react';
 import { useBC } from '../../context/BCContext';
 import bcApiService from '../../services/bcApi';
 
 export function BCRoleSelection() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { setUserType, userType, hasCompletedSetup, applicantMatch } = useBC();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { setUserType, userType, hasCompletedSetup, applicantMatch, isAuthenticated, isLoading, loadUserFromAPI, apiUser, logout } = useBC();
   const [authError, setAuthError] = useState<string | null>(null);
+
+  // Check if user has a token (primary auth check)
+  const hasToken = bcApiService.isAuthenticated();
+  // User is logged in if they have a token OR context says authenticated
+  const isLoggedIn = hasToken || isAuthenticated;
 
   // Check for auth errors in URL
   useEffect(() => {
@@ -20,16 +24,16 @@ export function BCRoleSelection() {
     }
   }, [searchParams]);
 
-  // Check if already authenticated via API
+  // Load user data if authenticated but no user data yet
   useEffect(() => {
-    if (bcApiService.isAuthenticated()) {
-      setIsAuthenticated(true);
+    if (bcApiService.isAuthenticated() && !isAuthenticated && !isLoading) {
+      loadUserFromAPI();
     }
-  }, []);
+  }, [isAuthenticated, isLoading, loadUserFromAPI]);
 
   // If already set up, redirect appropriately
   useEffect(() => {
-    if (userType && hasCompletedSetup) {
+    if (isAuthenticated && userType && hasCompletedSetup) {
       // If applicant has a match, go to match confirmation
       if (userType === 'applicant' && applicantMatch) {
         navigate('/bc/match');
@@ -37,7 +41,7 @@ export function BCRoleSelection() {
         navigate('/bc/discover');
       }
     }
-  }, [userType, hasCompletedSetup, applicantMatch, navigate]);
+  }, [isAuthenticated, userType, hasCompletedSetup, applicantMatch, navigate]);
 
   const handleRoleSelect = (role: 'applicant' | 'bc_member') => {
     setUserType(role);
@@ -48,6 +52,18 @@ export function BCRoleSelection() {
     // Redirect to Django's Google OAuth login
     window.location.href = bcApiService.getGoogleLoginUrl();
   };
+
+  // Show loading while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-dark-gray flex items-center justify-center">
+        <div className="text-center">
+          <Loader className="w-8 h-8 text-cyan-500 animate-spin mx-auto mb-4" />
+          <p className="text-medium-gray font-mono text-sm">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-dark-gray flex flex-col">
@@ -78,8 +94,30 @@ export function BCRoleSelection() {
         </motion.div>
       )}
 
+      {/* Welcome message for authenticated users */}
+      {isLoggedIn && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mx-6 mb-4 p-4 bg-cyan-500/10 border-2 border-cyan-500"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-cyan-400 font-mono text-sm">Signed in as</p>
+              <p className="text-white font-bold">{apiUser?.email || 'Loading...'}</p>
+            </div>
+            <button
+              onClick={logout}
+              className="text-cyan-400 font-mono text-xs underline hover:text-cyan-300"
+            >
+              Sign out
+            </button>
+          </div>
+        </motion.div>
+      )}
+
       {/* Sign in with Berkeley email option */}
-      {!isAuthenticated && (
+      {!isLoggedIn && (
         <div className="px-6 mb-6">
           <motion.button
             initial={{ opacity: 0, y: 20 }}
@@ -100,7 +138,7 @@ export function BCRoleSelection() {
       )}
 
       {/* Divider */}
-      {!isAuthenticated && (
+      {!isLoggedIn && (
         <div className="px-6 mb-6">
           <div className="flex items-center gap-4">
             <div className="flex-1 h-px bg-medium-gray/30" />
@@ -141,34 +179,33 @@ export function BCRoleSelection() {
           </div>
         </motion.button>
 
-        <motion.button
+        {/* BC Member Card - Not clickable, admin-only */}
+        <motion.div
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          onClick={() => handleRoleSelect('bc_member')}
-          className="w-full bg-white text-black p-6 border-3 border-black shadow-brutalist-lg
-                     hover:shadow-none hover:translate-x-1 hover:translate-y-1
-                     transition-all duration-150 text-left"
+          className="w-full bg-gray-100 text-black p-6 border-3 border-gray-400 opacity-75 text-left"
         >
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-cyan-500 flex items-center justify-center">
-              <Briefcase className="w-8 h-8 text-black" />
+            <div className="w-16 h-16 bg-gray-400 flex items-center justify-center">
+              <Lock className="w-8 h-8 text-gray-600" />
             </div>
             <div>
-              <h2 className="text-xl font-bold mb-1">I'm a BC Member</h2>
-              <p className="text-medium-gray font-mono text-sm">
-                Current BC member looking to mentor applicants
+              <h2 className="text-xl font-bold mb-1 text-gray-600">I'm a BC Member</h2>
+              <p className="text-gray-500 font-mono text-sm">
+                BC member accounts are created by admins only
               </p>
             </div>
           </div>
-          <div className="mt-4 pt-4 border-t-2 border-light-gray">
-            <ul className="space-y-2 text-sm text-medium-gray font-mono">
-              <li>• Review applicant profiles</li>
-              <li>• Accept coffee chat requests</li>
-              <li>• Manage multiple coffee chats</li>
-            </ul>
+          <div className="mt-4 pt-4 border-t-2 border-gray-300">
+            <div className="bg-cyan-500/10 border border-cyan-500/30 p-3 rounded">
+              <p className="text-sm text-cyan-700 font-mono flex items-center gap-2">
+                <Mail className="w-4 h-4" />
+                <span>Contact <strong>garv.agarwal.in@berkeley.edu</strong> to be added as a BC member</span>
+              </p>
+            </div>
           </div>
-        </motion.button>
+        </motion.div>
       </div>
 
       {/* Footer */}

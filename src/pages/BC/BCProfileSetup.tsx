@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, Check } from 'lucide-react';
+import { ArrowLeft, Camera, Check, Loader, Upload } from 'lucide-react';
 import { useBC } from '../../context/BCContext';
 import { BCMemberProfile, BCApplicantProfile, BC_EXPERTISE_AREAS, BC_AVAILABILITY_OPTIONS } from '../../services/types';
 import { mockBCMembers, mockBCApplicants, shuffleBCProfiles } from '../../data/mockBCProfiles';
+import bcApiService from '../../services/bcApi';
 
 // Applicant roles (can include various backgrounds)
 const APPLICANT_ROLES = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'MBA1', 'Graduate'];
@@ -26,11 +27,58 @@ const MAJORS = [
 
 export function BCProfileSetup() {
   const navigate = useNavigate();
-  const { userType, setCurrentProfile, setCompletedSetup, setProfiles, isApplicant } = useBC();
+  const { userType, setCurrentProfile, setCompletedSetup, setProfiles, isApplicant, isAuthenticated, apiUser } = useBC();
 
   // Common fields
-  const [name, setName] = useState('');
-  const [photoUrl, setPhotoUrl] = useState('/profiles/_darwin_gu.jpg');
+  const [name, setName] = useState(apiUser?.name || '');
+  const [photoUrl, setPhotoUrl] = useState(apiUser?.photo_url || '/profiles/_darwin_gu.jpg');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setSubmitError('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setSubmitError('Image must be smaller than 5MB');
+      return;
+    }
+
+    if (isAuthenticated) {
+      // Upload to server
+      setIsUploadingPhoto(true);
+      setSubmitError(null);
+      try {
+        const result = await bcApiService.uploadPhoto(file);
+        setPhotoUrl(result.photo_url);
+      } catch (error: any) {
+        console.error('Failed to upload photo:', error);
+        setSubmitError(error.response?.data?.error || 'Failed to upload photo');
+      } finally {
+        setIsUploadingPhoto(false);
+      }
+    } else {
+      // Demo mode - use local preview
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setPhotoUrl(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   // Applicant-specific fields
   const [applicantRole, setApplicantRole] = useState('');
@@ -47,9 +95,14 @@ export function BCProfileSetup() {
   const [areasOfExpertise, setAreasOfExpertise] = useState<string[]>([]);
   const [availability, setAvailability] = useState('');
 
-  // Redirect if no user type selected
+  // Redirect if no user type selected OR if trying to set up as BC member
+  // BC member accounts can only be created by admins
   React.useEffect(() => {
     if (!userType) {
+      navigate('/bc');
+    } else if (userType === 'bc_member') {
+      // BC members cannot self-register - redirect back with message
+      alert('BC member accounts can only be created by administrators. Please contact garv.agarwal.in@berkeley.edu to be added as a BC member.');
       navigate('/bc');
     }
   }, [userType, navigate]);
@@ -70,47 +123,107 @@ export function BCProfileSetup() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitError(null);
 
-    if (isApplicant) {
-      const profile: BCApplicantProfile = {
-        id: `user-applicant-${Date.now()}`,
-        name,
-        photoUrl,
-        role: applicantRole,
-        whyBC,
-        relevantExperience,
-        interests,
-      };
-      setCurrentProfile(profile);
-      // Load BC members to swipe on
-      setProfiles(shuffleBCProfiles(mockBCMembers));
-    } else {
-      const profile: BCMemberProfile = {
-        id: `user-member-${Date.now()}`,
-        name,
-        photoUrl,
-        year,
-        major,
-        semestersInBC,
-        areasOfExpertise,
-        availability,
-        bio,
-        projectExperience,
-      };
-      setCurrentProfile(profile);
-      // Load applicants to swipe on
-      setProfiles(shuffleBCProfiles(mockBCApplicants));
+    try {
+      if (isAuthenticated) {
+        // Save to API for authenticated users
+        if (isApplicant) {
+          const apiProfile = await bcApiService.createApplicantProfile({
+            name,
+            photo_url: photoUrl,
+            role: applicantRole,
+            why_bc: whyBC,
+            relevant_experience: relevantExperience,
+            interests,
+          });
+
+          const profile: BCApplicantProfile = {
+            id: String(apiProfile.id),
+            name: apiProfile.user?.name || name,
+            photoUrl: apiProfile.user?.photo_url || photoUrl,
+            role: apiProfile.role,
+            whyBC: apiProfile.why_bc,
+            relevantExperience: apiProfile.relevant_experience,
+            interests: apiProfile.interests,
+          };
+          setCurrentProfile(profile);
+
+          // Fetch BC members from API
+          try {
+            const discoverResponse = await bcApiService.getDiscoverProfiles();
+            const discoverProfiles = discoverResponse.profiles || discoverResponse;
+            setProfiles(discoverProfiles.map((p: any) => ({
+              id: String(p.user?.id || p.id),  // Use user ID for API swipes
+              name: p.user?.name || '',
+              photoUrl: p.user?.photo_url || '/profiles/default.jpg',
+              year: p.year,
+              major: p.major,
+              semestersInBC: p.semesters_in_bc,
+              areasOfExpertise: p.areas_of_expertise || [],
+              availability: p.availability,
+              bio: p.bio,
+              projectExperience: p.project_experience,
+            })));
+          } catch (discoverError) {
+            console.error('Failed to fetch discover profiles, using mock data:', discoverError);
+            setProfiles(shuffleBCProfiles(mockBCMembers));
+          }
+        }
+        // Note: BC members are created by admin, not here
+      } else {
+        // Demo mode - use local state only
+        if (isApplicant) {
+          const profile: BCApplicantProfile = {
+            id: `user-applicant-${Date.now()}`,
+            name,
+            photoUrl,
+            role: applicantRole,
+            whyBC,
+            relevantExperience,
+            interests,
+          };
+          setCurrentProfile(profile);
+          setProfiles(shuffleBCProfiles(mockBCMembers));
+        } else {
+          const profile: BCMemberProfile = {
+            id: `user-member-${Date.now()}`,
+            name,
+            photoUrl,
+            year,
+            major,
+            semestersInBC,
+            areasOfExpertise,
+            availability,
+            bio,
+            projectExperience,
+          };
+          setCurrentProfile(profile);
+          setProfiles(shuffleBCProfiles(mockBCApplicants));
+        }
+      }
+
+      setCompletedSetup(true);
+      navigate('/bc/discover');
+    } catch (error: any) {
+      console.error('Failed to create profile:', error);
+      setSubmitError(error.response?.data?.error || 'Failed to create profile. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setCompletedSetup(true);
-    navigate('/bc/discover');
   };
 
   const isFormValid = isApplicant
     ? name && applicantRole && whyBC && relevantExperience && interests.length > 0
     : name && year && major && bio && projectExperience && areasOfExpertise.length > 0 && availability;
+
+  // Don't render anything if user is BC member (they'll be redirected)
+  if (userType === 'bc_member' || !userType) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-dark-gray">
@@ -138,20 +251,43 @@ export function BCProfileSetup() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex justify-center"
+          className="flex flex-col items-center"
         >
           <div className="relative">
             <div className="w-24 h-24 bg-medium-gray border-3 border-black overflow-hidden">
-              <img src={photoUrl} alt="Profile" className="w-full h-full object-cover" />
+              {isUploadingPhoto ? (
+                <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                  <Loader className="w-6 h-6 animate-spin text-cyan-500" />
+                </div>
+              ) : (
+                <img src={photoUrl} alt="Profile" className="w-full h-full object-cover" />
+              )}
             </div>
             <button
               type="button"
+              onClick={handlePhotoClick}
+              disabled={isUploadingPhoto}
               className="absolute -bottom-2 -right-2 w-8 h-8 bg-cyan-500 border-2 border-black
-                         flex items-center justify-center"
+                         flex items-center justify-center hover:bg-cyan-400 transition-colors
+                         disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              <Camera className="w-4 h-4 text-black" />
+              {isUploadingPhoto ? (
+                <Loader className="w-4 h-4 text-black animate-spin" />
+              ) : (
+                <Camera className="w-4 h-4 text-black" />
+              )}
             </button>
           </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handlePhotoChange}
+            className="hidden"
+          />
+          <p className="text-medium-gray font-mono text-xs mt-2">
+            Click to upload photo
+          </p>
         </motion.div>
 
         {/* Name */}
@@ -434,6 +570,17 @@ export function BCProfileSetup() {
           </>
         )}
 
+        {/* Error Message */}
+        {submitError && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 bg-red-500/10 border-2 border-red-500 text-red-400 font-mono text-sm"
+          >
+            {submitError}
+          </motion.div>
+        )}
+
         {/* Submit Button */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -443,16 +590,25 @@ export function BCProfileSetup() {
         >
           <button
             type="submit"
-            disabled={!isFormValid}
+            disabled={!isFormValid || isSubmitting}
             className={`w-full py-4 font-bold font-mono text-lg border-3 border-black
                        flex items-center justify-center gap-2 transition-all
-                       ${isFormValid
+                       ${isFormValid && !isSubmitting
                          ? 'bg-cyan-500 text-black shadow-brutalist hover:shadow-none hover:translate-x-1 hover:translate-y-1'
                          : 'bg-medium-gray text-dark-gray cursor-not-allowed'
                        }`}
           >
-            <Check className="w-5 h-5" />
-            START MATCHING
+            {isSubmitting ? (
+              <>
+                <Loader className="w-5 h-5 animate-spin" />
+                CREATING PROFILE...
+              </>
+            ) : (
+              <>
+                <Check className="w-5 h-5" />
+                START MATCHING
+              </>
+            )}
           </button>
         </motion.div>
       </form>

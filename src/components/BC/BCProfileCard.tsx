@@ -1,7 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { GraduationCap, Clock, Star, BookOpen } from 'lucide-react';
+import { GraduationCap, Clock, Star, BookOpen, User } from 'lucide-react';
 import { BCMemberProfile, BCApplicantProfile } from '../../services/types';
+
+// Default placeholder for missing photos
+const DEFAULT_PHOTO = '/profiles/default.jpg';
+
+// Get full photo URL (handle relative paths from backend)
+function getPhotoUrl(photoUrl: string | undefined): string {
+  if (!photoUrl) return DEFAULT_PHOTO;
+  // If it's a relative path starting with /media, prepend the API URL
+  if (photoUrl.startsWith('/media/')) {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    return `${apiUrl}${photoUrl}`;
+  }
+  return photoUrl;
+}
 
 interface BCProfileCardProps {
   profile: BCMemberProfile | BCApplicantProfile;
@@ -31,6 +45,8 @@ function isBCMember(profile: BCMemberProfile | BCApplicantProfile): profile is B
 
 export function BCProfileCard({ profile, isTop = false, stackIndex = 0, swipeState, handlers }: BCProfileCardProps) {
   const isMember = isBCMember(profile);
+  const [imageError, setImageError] = useState(false);
+  const photoUrl = getPhotoUrl(profile.photoUrl);
 
   // Calculate scale and position based on stack position
   const scale = 1 - stackIndex * 0.05;
@@ -54,12 +70,19 @@ export function BCProfileCard({ profile, isTop = false, stackIndex = 0, swipeSta
       <div className="relative h-full bg-white border-3 border-black shadow-brutalist-lg overflow-hidden">
         {/* Profile Image */}
         <div className="relative h-[50%]">
-          <img
-            src={profile.photoUrl}
-            alt={profile.name}
-            className="w-full h-full object-cover"
-            draggable={false}
-          />
+          {imageError ? (
+            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+              <User className="w-16 h-16 text-gray-400" />
+            </div>
+          ) : (
+            <img
+              src={photoUrl}
+              alt={profile.name}
+              className="w-full h-full object-cover object-top"
+              draggable={false}
+              onError={() => setImageError(true)}
+            />
+          )}
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 

@@ -10,6 +10,7 @@ router.register(r'matches', views.MatchViewSet, basename='match')
 urlpatterns = [
     path('', include(router.urls)),
     path('me/', views.CurrentUserView.as_view(), name='current-user'),
+    path('upload-photo/', views.PhotoUploadView.as_view(), name='upload-photo'),
     path('discover/', views.DiscoverView.as_view(), name='discover'),
     path('swipe/', views.SwipeView.as_view(), name='swipe'),
     path('reset-profile/', views.ResetProfileView.as_view(), name='reset-profile'),

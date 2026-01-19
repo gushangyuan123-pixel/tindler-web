@@ -1,8 +1,18 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Coffee, MessageCircle, X } from 'lucide-react';
+import { Coffee, MessageCircle, X, User } from 'lucide-react';
 import { BCMatch } from '../../services/types';
 import { useBC } from '../../context/BCContext';
+
+// Get full photo URL (handle relative paths from backend)
+function getPhotoUrl(photoUrl: string | undefined): string {
+  if (!photoUrl) return '/profiles/default.jpg';
+  if (photoUrl.startsWith('/media/')) {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    return `${apiUrl}${photoUrl}`;
+  }
+  return photoUrl;
+}
 
 interface BCMatchPopupProps {
   isOpen: boolean;
@@ -87,11 +97,14 @@ export function BCMatchPopup({ isOpen, match, onClose, onSendMessage }: BCMatchP
               className="flex justify-center items-center gap-4 pb-6"
             >
               <div className="relative">
-                <div className="w-20 h-20 border-3 border-black overflow-hidden">
+                <div className="w-20 h-20 border-3 border-black overflow-hidden bg-gray-200">
                   <img
-                    src={match.applicant.photoUrl}
+                    src={getPhotoUrl(match.applicant.photoUrl)}
                     alt={match.applicant.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover object-top"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
                   />
                 </div>
                 <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-2 py-0.5
@@ -114,11 +127,14 @@ export function BCMatchPopup({ isOpen, match, onClose, onSendMessage }: BCMatchP
               </div>
 
               <div className="relative">
-                <div className="w-20 h-20 border-3 border-black overflow-hidden">
+                <div className="w-20 h-20 border-3 border-black overflow-hidden bg-gray-200">
                   <img
-                    src={match.bcMember.photoUrl}
+                    src={getPhotoUrl(match.bcMember.photoUrl)}
                     alt={match.bcMember.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover object-top"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
                   />
                 </div>
                 <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-2 py-0.5
