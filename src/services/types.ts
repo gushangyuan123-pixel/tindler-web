@@ -226,6 +226,7 @@ export interface BCMatch {
   bcMember: BCMemberProfile;
   matchedAt: Date;
   messages: BCMessage[];
+  status?: 'pending' | 'confirmed' | 'rejected' | 'completed';
 }
 
 // BC Areas of Expertise
