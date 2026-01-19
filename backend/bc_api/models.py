@@ -48,7 +48,11 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class BCMemberProfile(models.Model):
-    """Profile for BC members who can offer coffee chats."""
+    """Profile for BC members who can offer coffee chats.
+
+    BC Member profiles can ONLY be created by admins through the Django admin panel.
+    This prevents non-BC members from impersonating actual members.
+    """
     YEAR_CHOICES = [
         ('Freshman', 'Freshman'),
         ('Sophomore', 'Sophomore'),
@@ -64,11 +68,24 @@ class BCMemberProfile(models.Model):
     availability = models.CharField(max_length=100)  # e.g., "Weekday mornings"
     bio = models.TextField()
     project_experience = models.TextField(blank=True)
+
+    # Admin approval - BC members must be verified by admin
+    is_approved = models.BooleanField(default=False, help_text="Admin must approve before member appears in discovery")
+    approved_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='approved_bc_members'
+    )
+    approved_at = models.DateTimeField(null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.user.name} - BC Member"
+        status = "✓" if self.is_approved else "⏳"
+        return f"{status} {self.user.name} - BC Member"
 
 
 class BCApplicantProfile(models.Model):
@@ -96,7 +113,18 @@ class BCApplicantProfile(models.Model):
 
 
 class BCMatch(models.Model):
-    """A confirmed coffee chat match between an applicant and BC member."""
+    """A coffee chat match between an applicant and BC member.
+
+    Matches are created when both parties swipe right, but require
+    admin confirmation before the coffee chat is finalized.
+    """
+    STATUS_CHOICES = [
+        ('pending', 'Pending Admin Approval'),
+        ('confirmed', 'Confirmed'),
+        ('rejected', 'Rejected'),
+        ('completed', 'Coffee Chat Completed'),
+    ]
+
     applicant = models.ForeignKey(
         BCApplicantProfile,
         on_delete=models.CASCADE,
@@ -109,12 +137,27 @@ class BCMatch(models.Model):
     )
     matched_at = models.DateTimeField(auto_now_add=True)
 
+    # Admin confirmation
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    confirmed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='confirmed_matches'
+    )
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+    admin_notes = models.TextField(blank=True, help_text="Internal notes about this match")
+
     class Meta:
         unique_together = ('applicant', 'bc_member')
         ordering = ['-matched_at']
+        verbose_name_plural = 'BC Matches'
 
     def __str__(self):
-        return f"{self.applicant.user.name} matched with {self.bc_member.user.name}"
+        status_icons = {'pending': '⏳', 'confirmed': '✓', 'rejected': '✗', 'completed': '☕'}
+        icon = status_icons.get(self.status, '')
+        return f"{icon} {self.applicant.user.name} ↔ {self.bc_member.user.name}"
 
 
 class BCMessage(models.Model):

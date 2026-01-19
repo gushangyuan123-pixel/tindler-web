@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tindler - Professional Networking Reimagined</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1A1A1A;
+      color: white;
+      overflow: hidden;
+    }
+
+    .slideshow {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      transition: transform 0.5s ease;
+    }
+
+    .slide {
+      min-width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 60px;
+      position: relative;
+    }
+
+    .slide-number {
+      position: absolute;
+      bottom: 30px;
+      right: 40px;
+      font-family: monospace;
+      color: #666;
+      font-size: 14px;
+    }
+
+    h1 {
+      font-size: 72px;
+      font-weight: 900;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: -2px;
+    }
+
+    h2 {
+      font-size: 48px;
+      font-weight: 800;
+      margin-bottom: 30px;
+      text-transform: uppercase;
+    }
+
+    h3 {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #E8FF00;
+    }
+
+    p {
+      font-size: 24px;
+      color: #AAAAAA;
+      max-width: 800px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .highlight {
+      color: #E8FF00;
+    }
+
+    .pink {
+      color: #FF006E;
+    }
+
+    .subtitle {
+      font-size: 28px;
+      color: #666;
+      margin-top: 10px;
+    }
+
+    /* Slide 1 - Title */
+    .slide-title {
+      background: linear-gradient(135deg, #1A1A1A 0%, #2A2A2A 100%);
+    }
+
+    .logo {
+      font-size: 120px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #E8FF00, #FF006E);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 20px;
+    }
+
+    /* Feature cards */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+      max-width: 1200px;
+      margin-top: 40px;
+    }
+
+    .feature-card {
+      background: #2A2A2A;
+      border: 3px solid #333;
+      padding: 30px;
+      text-align: left;
+      box-shadow: 6px 6px 0 #E8FF00;
+    }
+
+    .feature-card h3 {
+      font-size: 24px;
+      margin-bottom: 15px;
+    }
+
+    .feature-card p {
+      font-size: 16px;
+      text-align: left;
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 40px;
+      margin-top: 50px;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 72px;
+      font-weight: 900;
+      color: #E8FF00;
+    }
+
+    .stat-label {
+      font-size: 18px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    /* Flow diagram */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      margin-top: 50px;
+    }
+
+    .flow-step {
+      background: #2A2A2A;
+      border: 3px solid #E8FF00;
+      padding: 25px 35px;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .flow-arrow {
+      font-size: 36px;
+      color: #E8FF00;
+    }
+
+    /* Profile preview */
+    .profile-preview {
+      background: #2A2A2A;
+      border: 4px solid #333;
+      padding: 40px;
+      max-width: 400px;
+      text-align: left;
+      box-shadow: 8px 8px 0 #E8FF00;
+      margin-top: 30px;
+    }
+
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .avatar {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #E8FF00, #FF006E);
+      border-radius: 12px;
+    }
+
+    .profile-name {
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    .profile-role {
+      color: #888;
+      font-size: 16px;
+    }
+
+    .profile-bio {
+      font-size: 16px;
+      color: #AAA;
+      margin-bottom: 15px;
+      text-align: left;
+    }
+
+    .hot-take {
+      background: #333;
+      padding: 15px;
+      border-left: 4px solid #FF006E;
+      font-style: italic;
+      color: #CCC;
+      font-size: 14px;
+    }
+
+    .interests {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 15px;
+    }
+
+    .interest-tag {
+      background: #E8FF00;
+      color: #000;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* Two column layout */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      max-width: 1200px;
+      align-items: center;
+    }
+
+    .col {
+      text-align: left;
+    }
+
+    .col h2 {
+      text-align: left;
+    }
+
+    .col p {
+      text-align: left;
+    }
+
+    /* List */
+    .feature-list {
+      list-style: none;
+      margin-top: 30px;
+    }
+
+    .feature-list li {
+      font-size: 22px;
+      padding: 15px 0;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .feature-list li::before {
+      content: ">";
+      color: #E8FF00;
+      font-weight: bold;
+      font-size: 24px;
+    }
+
+    /* Tech stack */
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-top: 40px;
+    }
+
+    .tech-item {
+      background: #2A2A2A;
+      padding: 20px;
+      text-align: center;
+      border: 2px solid #333;
+    }
+
+    .tech-item span {
+      display: block;
+      font-size: 14px;
+      color: #888;
+      margin-top: 8px;
+    }
+
+    /* Navigation */
+    .nav {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 15px;
+      z-index: 100;
+    }
+
+    .nav button {
+      background: #E8FF00;
+      color: #000;
+      border: none;
+      padding: 15px 30px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+
+    .nav button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 0 #FF006E;
+    }
+
+    .nav button:disabled {
+      background: #333;
+      color: #666;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Progress bar */
+    .progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 4px;
+      background: #E8FF00;
+      transition: width 0.3s;
+      z-index: 100;
+    }
+
+    /* Keyboard hint */
+    .keyboard-hint {
+      position: fixed;
+      bottom: 30px;
+      left: 40px;
+      font-size: 12px;
+      color: #444;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress"></div>
+
+  <div class="slideshow" id="slideshow">
+    <!-- Slide 1: Title -->
+    <div class="slide slide-title">
+      <div class="logo">TINDLER</div>
+      <h2>Professional Networking, <span class="pink">Reimagined</span></h2>
+      <p>A swipe-based networking app that makes connecting with fellow entrepreneurs as intuitive as... well, you know.</p>
+      <p class="subtitle" style="margin-top: 40px;">Built for Berkeley's Method of Entrepreneurship Bootcamp</p>
+      <div class="slide-number">01 / 10</div>
+    </div>
+
+    <!-- Slide 2: The Problem -->
+    <div class="slide">
+      <h2>The <span class="highlight">Problem</span></h2>
+      <p style="font-size: 28px; margin-bottom: 40px;">Networking at events is awkward, inefficient, and exhausting.</p>
+      <div class="feature-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="feature-card">
+          <h3>Time-Consuming</h3>
+          <p>Hours of small talk to find one meaningful connection</p>
+        </div>
+        <div class="feature-card">
+          <h3>Surface-Level</h3>
+          <p>Business cards exchanged, but no real understanding of shared interests</p>
+        </div>
+        <div class="feature-card">
+          <h3>Overwhelming</h3>
+          <p>75+ people in a cohort - impossible to meet everyone meaningfully</p>
+        </div>
+      </div>
+      <div class="slide-number">02 / 10</div>
+    </div>
+
+    <!-- Slide 3: The Solution -->
+    <div class="slide">
+      <h2>The <span class="highlight">Solution</span></h2>
+      <p style="font-size: 32px; margin-bottom: 20px;">What if networking felt as natural as swiping?</p>
+      <div class="flow">
+        <div class="flow-step">Browse Profiles</div>
+        <div class="flow-arrow">-></div>
+        <div class="flow-step">Swipe Right to Connect</div>
+        <div class="flow-arrow">-></div>
+        <div class="flow-step">Match!</div>
+        <div class="flow-arrow">-></div>
+        <div class="flow-step">Start Chatting</div>
+      </div>
+      <p style="margin-top: 40px;">Mutual interest. No awkward cold intros. Just connections that make sense.</p>
+      <div class="slide-number">03 / 10</div>
+    </div>
+
+    <!-- Slide 4: Profile Anatomy -->
+    <div class="slide">
+      <div class="two-col">
+        <div class="col">
+          <h2>Rich <span class="highlight">Profiles</span></h2>
+          <p>Every profile tells a story - not just a job title.</p>
+          <ul class="feature-list">
+            <li>Professional background & role</li>
+            <li>Personal bio & journey</li>
+            <li>"Hot Take" - their unique perspective</li>
+            <li>Side projects & ventures</li>
+            <li>Shared interests for discovery</li>
+          </ul>
+        </div>
+        <div class="col">
+          <div class="profile-preview">
+            <div class="profile-header">
+              <div class="avatar"></div>
+              <div>
+                <div class="profile-name">Darwin Gu</div>
+                <div class="profile-role">Freshman @ UC Berkeley</div>
+              </div>
+            </div>
+            <p class="profile-bio">Grew up in Hangzhou, China in an entrepreneurial family. Founded two startups: AI-powered D&D and edtech for Riverside County Schools.</p>
+            <div class="hot-take">"Angel investing runs in the family. Always looking to hear about cool startups."</div>
+            <div class="interests">
+              <span class="interest-tag">Basketball</span>
+              <span class="interest-tag">Karaoke</span>
+              <span class="interest-tag">Tech Events</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-number">04 / 10</div>
+    </div>
+
+    <!-- Slide 5: Swipe Mechanic -->
+    <div class="slide">
+      <h2>Intuitive <span class="highlight">Swiping</span></h2>
+      <p style="margin-bottom: 50px;">The interaction pattern everyone already knows.</p>
+      <div class="feature-grid" style="grid-template-columns: repeat(2, 1fr); max-width: 800px;">
+        <div class="feature-card" style="box-shadow: 6px 6px 0 #FF006E;">
+          <h3 style="color: #FF006E;">Swipe Left</h3>
+          <p>Not the right fit? Pass and move on. No hard feelings, no awkward moments.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Swipe Right</h3>
+          <p>Interested in connecting? Swipe right. If they do too - it's a match!</p>
+        </div>
+      </div>
+      <p style="margin-top: 40px; font-size: 20px; color: #666;">Smooth gesture animations powered by Framer Motion</p>
+      <div class="slide-number">05 / 10</div>
+    </div>
+
+    <!-- Slide 6: Matching -->
+    <div class="slide">
+      <h2>Mutual <span class="highlight">Matches</span></h2>
+      <p style="font-size: 28px;">Both people have to swipe right - ensuring mutual interest before connecting.</p>
+      <div style="margin-top: 50px; text-align: center;">
+        <div style="font-size: 120px; margin-bottom: 20px;">*</div>
+        <h3 style="font-size: 36px;">IT'S A MATCH!</h3>
+        <p style="margin-top: 20px;">When both parties express interest, a connection is born.</p>
+      </div>
+      <div class="feature-grid" style="margin-top: 50px; grid-template-columns: repeat(2, 1fr); max-width: 700px;">
+        <div class="feature-card">
+          <h3>Send Message</h3>
+          <p>Jump straight into conversation with your new connection</p>
+        </div>
+        <div class="feature-card">
+          <h3>Keep Swiping</h3>
+          <p>Continue discovering more potential collaborators</p>
+        </div>
+      </div>
+      <div class="slide-number">06 / 10</div>
+    </div>
+
+    <!-- Slide 7: Smart Filtering -->
+    <div class="slide">
+      <h2>Smart <span class="highlight">Filtering</span></h2>
+      <p style="margin-bottom: 40px;">Find exactly who you're looking for.</p>
+      <div class="two-col" style="max-width: 1000px;">
+        <div class="col">
+          <h3>Filter by Program</h3>
+          <div class="interests" style="margin-top: 20px;">
+            <span class="interest-tag">MBA1</span>
+            <span class="interest-tag">MBA2</span>
+            <span class="interest-tag">Undergrad</span>
+            <span class="interest-tag">PhD</span>
+            <span class="interest-tag">Alumni</span>
+          </div>
+        </div>
+        <div class="col">
+          <h3>Filter by Interests</h3>
+          <div class="interests" style="margin-top: 20px;">
+            <span class="interest-tag">AI/ML</span>
+            <span class="interest-tag">Startups</span>
+            <span class="interest-tag">FinTech</span>
+            <span class="interest-tag">Healthcare</span>
+            <span class="interest-tag">Sustainability</span>
+            <span class="interest-tag">Design</span>
+          </div>
+        </div>
+      </div>
+      <p style="margin-top: 50px;">Looking for a technical co-founder? Filter for engineers. Want to discuss VC? Filter by Venture Capital interest.</p>
+      <div class="slide-number">07 / 10</div>
+    </div>
+
+    <!-- Slide 8: Real-time Chat -->
+    <div class="slide">
+      <h2>Real-time <span class="highlight">Messaging</span></h2>
+      <p style="margin-bottom: 40px;">Move from match to meaningful conversation instantly.</p>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <h3>Instant Chat</h3>
+          <p>Start conversations immediately after matching - while context is fresh</p>
+        </div>
+        <div class="feature-card">
+          <h3>Match History</h3>
+          <p>All your connections in one place. Pick up where you left off.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Unread Badges</h3>
+          <p>Never miss a message from a potential co-founder or mentor</p>
+        </div>
+      </div>
+      <div class="slide-number">08 / 10</div>
+    </div>
+
+    <!-- Slide 9: Tech Stack -->
+    <div class="slide">
+      <h2>Built with <span class="highlight">Modern Tech</span></h2>
+      <p>Production-ready architecture for scale and performance.</p>
+      <div class="tech-grid">
+        <div class="tech-item">
+          <strong>React 18</strong>
+          <span>UI Framework</span>
+        </div>
+        <div class="tech-item">
+          <strong>TypeScript</strong>
+          <span>Type Safety</span>
+        </div>
+        <div class="tech-item">
+          <strong>Tailwind CSS</strong>
+          <span>Styling</span>
+        </div>
+        <div class="tech-item">
+          <strong>Framer Motion</strong>
+          <span>Animations</span>
+        </div>
+        <div class="tech-item">
+          <strong>React Router</strong>
+          <span>Navigation</span>
+        </div>
+        <div class="tech-item">
+          <strong>Vite</strong>
+          <span>Build Tool</span>
+        </div>
+        <div class="tech-item">
+          <strong>Google OAuth</strong>
+          <span>Authentication</span>
+        </div>
+        <div class="tech-item">
+          <strong>REST API</strong>
+          <span>Backend</span>
+        </div>
+      </div>
+      <p style="margin-top: 40px; font-size: 18px; color: #666;">Mobile-first PWA design | Deployed on Vercel</p>
+      <div class="slide-number">09 / 10</div>
+    </div>
+
+    <!-- Slide 10: Summary -->
+    <div class="slide slide-title">
+      <div class="logo" style="font-size: 80px;">TINDLER</div>
+      <h2 style="font-size: 36px;">Swipe. Match. <span class="pink">Connect.</span></h2>
+      <div class="stats-grid" style="margin-top: 60px;">
+        <div class="stat">
+          <div class="stat-number">75+</div>
+          <div class="stat-label">Profiles</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">20+</div>
+          <div class="stat-label">Interests</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">1</div>
+          <div class="stat-label">Swipe to Connect</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">0</div>
+          <div class="stat-label">Awkward Intros</div>
+        </div>
+      </div>
+      <p style="margin-top: 60px; font-size: 20px;">Making professional networking feel personal again.</p>
+      <div class="slide-number">10 / 10</div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button id="prevBtn" onclick="prevSlide()">< Previous</button>
+    <button id="nextBtn" onclick="nextSlide()">Next ></button>
+  </div>
+
+  <div class="keyboard-hint">Use arrow keys or click to navigate</div>
+
+  <script>
+    let currentSlide = 0;
+    const totalSlides = 10;
+    const slideshow = document.getElementById('slideshow');
+    const progress = document.getElementById('progress');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    function updateSlide() {
+      slideshow.style.transform = `translateX(-${currentSlide * 100}vw)`;
+      progress.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+      prevBtn.disabled = currentSlide === 0;
+      nextBtn.disabled = currentSlide === totalSlides - 1;
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides - 1) {
+        currentSlide++;
+        updateSlide();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        currentSlide--;
+        updateSlide();
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft') {
+        prevSlide();
+      }
+    });
+
+    // Touch support
+    let touchStartX = 0;
+    document.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+    });
+    document.addEventListener('touchend', (e) => {
+      const touchEndX = e.changedTouches[0].clientX;
+      const diff = touchStartX - touchEndX;
+      if (Math.abs(diff) > 50) {
+        if (diff > 0) nextSlide();
+        else prevSlide();
+      }
+    });
+
+    updateSlide();
+  </script>
+</body>
+</html>

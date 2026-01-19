@@ -60,11 +60,16 @@ class CurrentUserView(APIView):
 
 
 class BCMemberProfileViewSet(viewsets.ModelViewSet):
-    """ViewSet for BC member profiles."""
+    """ViewSet for BC member profiles.
+
+    IMPORTANT: BC member profiles can ONLY be created by admins.
+    Regular users cannot self-register as BC members.
+    """
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return BCMemberProfile.objects.all()
+        # Only show approved BC members
+        return BCMemberProfile.objects.filter(is_approved=True)
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -72,14 +77,25 @@ class BCMemberProfileViewSet(viewsets.ModelViewSet):
         return BCMemberProfileSerializer
 
     def create(self, request, *args, **kwargs):
-        """Create BC member profile for current user."""
-        # Check if user already has a profile
-        if hasattr(request.user, 'bc_member_profile'):
-            return Response(
-                {'error': 'Profile already exists'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        return super().create(request, *args, **kwargs)
+        """BC member profiles can only be created by admins."""
+        return Response(
+            {'error': 'BC member profiles can only be created by administrators. Please contact the BC admin.'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
+    def update(self, request, *args, **kwargs):
+        """BC member profiles can only be updated by admins."""
+        return Response(
+            {'error': 'BC member profiles can only be updated by administrators.'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
+    def partial_update(self, request, *args, **kwargs):
+        """BC member profiles can only be updated by admins."""
+        return Response(
+            {'error': 'BC member profiles can only be updated by administrators.'},
+            status=status.HTTP_403_FORBIDDEN
+        )
 
     @action(detail=False, methods=['get'])
     def me(self, request):
@@ -140,7 +156,7 @@ class DiscoverView(APIView):
 
         if user.user_type == 'applicant':
             # Applicants see BC members
-            # Check if applicant is already matched
+            # Check if applicant is already matched (with confirmed match)
             try:
                 if user.applicant_profile.has_been_matched:
                     return Response({'profiles': [], 'message': 'Already matched'})
@@ -150,7 +166,10 @@ class DiscoverView(APIView):
                     status=status.HTTP_404_NOT_FOUND
                 )
 
-            profiles = BCMemberProfile.objects.exclude(
+            # Only show APPROVED BC members
+            profiles = BCMemberProfile.objects.filter(
+                is_approved=True
+            ).exclude(
                 user_id__in=swiped_ids
             ).select_related('user')
             serializer = BCMemberProfileSerializer(profiles, many=True)
@@ -224,18 +243,26 @@ class SwipeView(APIView):
                     applicant_profile = target_user.applicant_profile
                     bc_member_profile = user.bc_member_profile
 
-                # Check if applicant is already matched
+                # Check if applicant is already matched (has a confirmed match)
                 if not applicant_profile.has_been_matched:
-                    match = BCMatch.objects.create(
+                    # Check if a match already exists (pending or otherwise)
+                    existing_match = BCMatch.objects.filter(
                         applicant=applicant_profile,
                         bc_member=bc_member_profile
-                    )
-                    # Mark applicant as matched
-                    applicant_profile.has_been_matched = True
-                    applicant_profile.save()
+                    ).first()
 
-                    match_created = True
-                    match_data = BCMatchSerializer(match).data
+                    if not existing_match:
+                        # Create match with PENDING status - admin must confirm
+                        match = BCMatch.objects.create(
+                            applicant=applicant_profile,
+                            bc_member=bc_member_profile,
+                            status='pending'  # Requires admin confirmation
+                        )
+                        # NOTE: applicant is NOT marked as matched yet
+                        # Admin will mark them as matched when confirming
+
+                        match_created = True
+                        match_data = BCMatchSerializer(match).data
 
         return Response({
             'swipe': BCSwipeSerializer(swipe).data,
@@ -245,27 +272,44 @@ class SwipeView(APIView):
 
 
 class MatchViewSet(viewsets.ReadOnlyModelViewSet):
-    """ViewSet for viewing matches."""
+    """ViewSet for viewing matches.
+
+    Users can see all their matches (pending, confirmed, completed).
+    Status field indicates whether admin has confirmed the match.
+    """
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = BCMatchSerializer
 
     def get_queryset(self):
         user = self.request.user
+        # Exclude rejected matches from user view
+        status_filter = ['pending', 'confirmed', 'completed']
+
         if user.user_type == 'applicant':
             try:
-                return BCMatch.objects.filter(applicant=user.applicant_profile)
+                return BCMatch.objects.filter(
+                    applicant=user.applicant_profile,
+                    status__in=status_filter
+                )
             except BCApplicantProfile.DoesNotExist:
                 return BCMatch.objects.none()
         elif user.user_type == 'bc_member':
             try:
-                return BCMatch.objects.filter(bc_member=user.bc_member_profile)
+                return BCMatch.objects.filter(
+                    bc_member=user.bc_member_profile,
+                    status__in=status_filter
+                )
             except BCMemberProfile.DoesNotExist:
                 return BCMatch.objects.none()
         return BCMatch.objects.none()
 
 
 class MessageViewSet(viewsets.ModelViewSet):
-    """ViewSet for chat messages within a match."""
+    """ViewSet for chat messages within a match.
+
+    Messaging is only allowed for CONFIRMED matches.
+    Pending matches cannot exchange messages until admin confirms.
+    """
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = BCMessageSerializer
 
@@ -276,6 +320,13 @@ class MessageViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         match_id = self.kwargs.get('match_id')
         match = get_object_or_404(BCMatch, id=match_id)
+
+        # Only allow messaging for confirmed matches
+        if match.status != 'confirmed':
+            return Response(
+                {'error': 'Messaging is only available for confirmed matches. Please wait for admin approval.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
         # Verify user is part of this match
         user = request.user

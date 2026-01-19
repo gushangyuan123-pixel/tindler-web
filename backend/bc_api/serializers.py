@@ -136,11 +136,12 @@ class BCMatchSerializer(serializers.ModelSerializer):
     applicant = BCApplicantProfileSerializer(read_only=True)
     bc_member = BCMemberProfileSerializer(read_only=True)
     messages = BCMessageSerializer(many=True, read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
 
     class Meta:
         model = BCMatch
-        fields = ['id', 'applicant', 'bc_member', 'matched_at', 'messages']
-        read_only_fields = ['id', 'matched_at']
+        fields = ['id', 'applicant', 'bc_member', 'matched_at', 'status', 'status_display', 'confirmed_at', 'messages']
+        read_only_fields = ['id', 'matched_at', 'status', 'confirmed_at']
 
 
 class BCSwipeSerializer(serializers.ModelSerializer):
