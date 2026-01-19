@@ -179,3 +179,74 @@ export function apiMessageToMessage(apiMessage: APIMessage): Message {
     isFromCurrentUser: apiMessage.isFromCurrentUser,
   };
 }
+
+// ==================== BC Coffee Chat Types ====================
+
+export type BCUserType = 'applicant' | 'bc_member';
+
+// BC Member Profile
+export interface BCMemberProfile {
+  id: string;
+  name: string;
+  photoUrl: string;
+  year: string;              // Freshman, Sophomore, Junior, Senior
+  major: string;             // e.g., "Business Administration", "Economics"
+  semestersInBC: number;
+  areasOfExpertise: string[];  // Strategy, Operations, Tech, etc.
+  availability: string;        // "Weekday mornings", "Flexible", etc.
+  bio: string;
+  projectExperience: string;   // BC project experience
+}
+
+// Applicant Profile
+export interface BCApplicantProfile {
+  id: string;
+  name: string;
+  photoUrl: string;
+  role: string;              // MBA1, Undergrad, etc.
+  whyBC: string;             // "Why do you want to join BC?"
+  relevantExperience: string;
+  interests: string[];
+}
+
+// BC Message
+export interface BCMessage {
+  id: string;
+  matchId: string;
+  senderId: string;
+  content: string;
+  createdAt: Date;
+  isFromCurrentUser: boolean;
+}
+
+// Match (coffee chat)
+export interface BCMatch {
+  id: string;
+  applicant: BCApplicantProfile;
+  bcMember: BCMemberProfile;
+  matchedAt: Date;
+  messages: BCMessage[];
+}
+
+// BC Areas of Expertise
+export const BC_EXPERTISE_AREAS = [
+  'Strategy',
+  'Operations',
+  'Technology',
+  'Marketing',
+  'Finance',
+  'Healthcare',
+  'Social Impact',
+  'Sustainability',
+  'Product Management',
+  'Data Analytics',
+] as const;
+
+// BC Availability Options
+export const BC_AVAILABILITY_OPTIONS = [
+  'Weekday mornings',
+  'Weekday afternoons',
+  'Weekday evenings',
+  'Weekends',
+  'Flexible',
+] as const;

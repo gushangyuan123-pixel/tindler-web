@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 
 // Context
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider, useApp } from './context/AppContext';
+import { BCProvider } from './context/BCContext';
 
 // Pages
 import { Login } from './pages/Login';
@@ -15,8 +16,36 @@ import { Matches } from './pages/Matches';
 import { Chat } from './pages/Chat';
 import { Profile } from './pages/Profile';
 
+// BC Pages
+import {
+  BCRoleSelection,
+  BCProfileSetup,
+  BCDiscover,
+  BCMatchConfirmation,
+  BCMatches,
+  BCChat,
+} from './pages/BC';
+import { BCAuthCallback } from './pages/BC/BCAuthCallback';
+
 // Components
 import { TabBar } from './components/TabBar';
+
+// BC Routes Component - separated for cleaner routing
+function BCRoutes() {
+  return (
+    <BCProvider>
+      <Routes>
+        <Route path="/" element={<BCRoleSelection />} />
+        <Route path="/auth-callback" element={<BCAuthCallback />} />
+        <Route path="/setup" element={<BCProfileSetup />} />
+        <Route path="/discover" element={<BCDiscover />} />
+        <Route path="/match" element={<BCMatchConfirmation />} />
+        <Route path="/matches" element={<BCMatches />} />
+        <Route path="/chat/:matchId" element={<BCChat />} />
+      </Routes>
+    </BCProvider>
+  );
+}
 
 function AppRoutes() {
   const { isAuthenticated, isLoading: authLoading, signIn } = useAuth();
@@ -91,7 +120,10 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <AppProvider>
-          <AppRoutes />
+          <Routes>
+            <Route path="/bc/*" element={<BCRoutes />} />
+            <Route path="*" element={<AppRoutes />} />
+          </Routes>
         </AppProvider>
       </AuthProvider>
     </BrowserRouter>
