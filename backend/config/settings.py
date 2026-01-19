@@ -104,9 +104,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database configuration
 # Use DATABASE_URL in production (Railway, Heroku, Render)
 # Fall back to individual settings for local development
-if HAS_DJ_DATABASE_URL and os.getenv('DATABASE_URL'):
+DATABASE_URL = os.getenv('DATABASE_URL')
+if DATABASE_URL:
+    import dj_database_url
     DATABASES = {
-        'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+        'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
     }
 else:
     DATABASES = {
