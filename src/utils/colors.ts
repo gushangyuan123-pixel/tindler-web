@@ -1,4 +1,4 @@
-// Tindler Design System Colors
+// IceLatte Design System Colors
 export const colors = {
   // Primary Brutalist Palette
   acidYellow: '#FFEB00',

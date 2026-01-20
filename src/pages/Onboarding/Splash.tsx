@@ -51,7 +51,7 @@ export function Splash({ onGetStarted }: SplashProps) {
         transition={{ delay: 0.5 }}
         className="text-5xl font-black text-white mb-2"
       >
-        TINDLER
+        ICELATTE
       </motion.h1>
 
       {/* Subtitle */}

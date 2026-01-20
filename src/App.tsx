@@ -9,6 +9,7 @@ import { BCProvider } from './context/BCContext';
 
 // Pages
 import { Login } from './pages/Login';
+import { ModuleSelection } from './pages/ModuleSelection';
 import { OnboardingFlow } from './pages/Onboarding';
 import { ProfileSelection } from './pages/ProfileSelection';
 import { Discover } from './pages/Discover';
@@ -121,8 +122,9 @@ function App() {
       <AuthProvider>
         <AppProvider>
           <Routes>
+            <Route path="/" element={<ModuleSelection />} />
             <Route path="/bc/*" element={<BCRoutes />} />
-            <Route path="*" element={<AppRoutes />} />
+            <Route path="/app/*" element={<AppRoutes />} />
           </Routes>
         </AppProvider>
       </AuthProvider>

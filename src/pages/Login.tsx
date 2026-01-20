@@ -2,7 +2,7 @@ import React, { useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { apiService } from '../services/api';
 
-// Google Client ID for Tindler Web (Close CRM Web credentials)
+// Google Client ID for IceLatte Web
 const GOOGLE_CLIENT_ID = '188625251644-v9g5d7f2g30op2mkoritdtecot69obcc.apps.googleusercontent.com';
 
 interface LoginProps {
@@ -110,7 +110,7 @@ export function Login({ onSuccess }: LoginProps) {
         transition={{ duration: 0.5 }}
         className="mb-8"
       >
-        <span className="text-6xl">&#127820;</span>
+        <span className="text-6xl">🧋</span>
       </motion.div>
 
       {/* Title */}
@@ -120,7 +120,7 @@ export function Login({ onSuccess }: LoginProps) {
         transition={{ delay: 0.2 }}
         className="text-4xl font-black text-white mb-2 tracking-tight"
       >
-        TINDLER
+        ICELATTE
       </motion.h1>
 
       {/* Subtitle */}
@@ -130,9 +130,7 @@ export function Login({ onSuccess }: LoginProps) {
         transition={{ delay: 0.3 }}
         className="text-sm font-mono text-medium-gray mb-12 text-center"
       >
-        Professional Networking
-        <br />
-        for BMOE Cohort
+        Break the Ice, grab a Latte.
       </motion.p>
 
       {/* Google Sign In Button */}

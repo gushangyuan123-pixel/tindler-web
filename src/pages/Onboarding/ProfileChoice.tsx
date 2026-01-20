@@ -28,7 +28,7 @@ export function ProfileChoice({ onUseExisting, onCreateNew }: ProfileChoiceProps
           transition={{ delay: 0.2 }}
           className="text-3xl font-black text-white mb-3"
         >
-          WELCOME TO TINDLER
+          WELCOME TO ICELATTE
         </motion.h1>
 
         <motion.p

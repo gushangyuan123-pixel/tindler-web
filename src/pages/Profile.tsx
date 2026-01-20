@@ -93,7 +93,7 @@ export function Profile() {
 
           {/* Role */}
           <p className="text-xs font-mono text-medium-gray uppercase mb-3">
-            {currentUser?.role || 'Member'} @ {currentUser?.company || 'Tindler'}
+            {currentUser?.role || 'Member'} @ {currentUser?.company || 'IceLatte'}
           </p>
 
           {/* Verified badge */}
