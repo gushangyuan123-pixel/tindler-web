@@ -197,9 +197,9 @@ export function BCMemberJoin() {
 
   // Logged in - show profile form
   return (
-    <div className="min-h-screen bg-dark-gray">
+    <div className="h-screen bg-dark-gray flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="p-6 border-b border-zinc-800">
+      <div className="flex-shrink-0 p-6 border-b border-zinc-800">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-cyan-500 rounded-lg flex items-center justify-center">
             <Coffee className="w-5 h-5 text-black" />
@@ -212,7 +212,7 @@ export function BCMemberJoin() {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="p-6 space-y-6">
+      <form onSubmit={handleSubmit} className="flex-1 p-6 space-y-6 overflow-y-auto pb-10">
         {error && (
           <div className="p-4 bg-red-500/20 border border-red-500 rounded-lg">
             <p className="text-red-400 text-sm">{error}</p>
