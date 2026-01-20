@@ -166,6 +166,25 @@ export function Login({ onSuccess }: LoginProps) {
         </motion.p>
       )}
 
+      {/* Demo Mode Button */}
+      <motion.button
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        onClick={() => {
+          const demoUser = {
+            id: 'demo-user',
+            email: 'demo@berkeley.edu',
+            name: 'Demo User',
+            photoUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=demo',
+          };
+          onSuccess(demoUser);
+        }}
+        className="mt-6 px-6 py-3 bg-medium-gray/30 hover:bg-medium-gray/50 text-white rounded-lg text-sm font-medium transition-colors"
+      >
+        Continue as Demo User
+      </motion.button>
+
       {/* Terms */}
       <motion.p
         initial={{ opacity: 0 }}
