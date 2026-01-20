@@ -240,6 +240,11 @@ SOCIALACCOUNT_PROVIDERS = {
 # Adapter to restrict to Berkeley emails
 SOCIALACCOUNT_ADAPTER = 'bc_api.adapters.BerkeleyEmailAdapter'
 
+# Auto signup - don't show signup form after OAuth, create account automatically
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+
 # Login/logout redirects
 LOGIN_REDIRECT_URL = '/auth/callback/'  # Redirects to our callback view which handles token
 LOGOUT_REDIRECT_URL = '/'
