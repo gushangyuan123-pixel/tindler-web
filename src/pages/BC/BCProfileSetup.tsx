@@ -8,7 +8,7 @@ import { mockBCMembers, mockBCApplicants, shuffleBCProfiles } from '../../data/m
 import bcApiService from '../../services/bcApi';
 
 // Applicant roles (can include various backgrounds)
-const APPLICANT_ROLES = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'MBA1', 'Graduate'];
+const APPLICANT_ROLES = ['Freshman', 'Sophomore', 'Junior', 'Senior'];
 
 // BC Member years (all undergrads)
 const BC_MEMBER_YEARS = ['Sophomore', 'Junior', 'Senior'];
@@ -31,7 +31,7 @@ export function BCProfileSetup() {
 
   // Common fields
   const [name, setName] = useState(apiUser?.name || '');
-  const [photoUrl, setPhotoUrl] = useState(apiUser?.photo_url || '/profiles/_darwin_gu.jpg');
+  const [photoUrl, setPhotoUrl] = useState(apiUser?.photo_url || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -259,8 +259,12 @@ export function BCProfileSetup() {
                 <div className="w-full h-full flex items-center justify-center bg-gray-200">
                   <Loader className="w-6 h-6 animate-spin text-cyan-500" />
                 </div>
-              ) : (
+              ) : photoUrl ? (
                 <img src={photoUrl} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-medium-gray">
+                  <Camera className="w-8 h-8 text-dark-gray" />
+                </div>
               )}
             </div>
             <button
