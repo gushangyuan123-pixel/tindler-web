@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
-// Use environment variable for API URL, fallback to localhost for development
-const BC_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// Use environment variable for API URL, fallback to production
+const BC_API_URL = import.meta.env.VITE_API_URL || 'https://api.icelatte.co';
 
 const BC_TOKEN_KEY = 'bc_auth_token';
 
