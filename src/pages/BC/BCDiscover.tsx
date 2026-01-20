@@ -51,6 +51,23 @@ export function BCDiscover() {
     }
   }, [userType, hasCompletedSetup, isApplicant, applicantMatch, navigate]);
 
+  // Load profiles on mount if empty
+  useEffect(() => {
+    if (availableProfiles.length === 0 && hasCompletedSetup) {
+      // Load mock profiles for demo mode or fetch from API
+      if (isAuthenticated) {
+        handleRefresh();
+      } else {
+        // Demo mode - load mock profiles
+        if (isApplicant) {
+          setProfiles(shuffleBCProfiles(mockBCMembers));
+        } else {
+          setProfiles(shuffleBCProfiles(mockBCApplicants));
+        }
+      }
+    }
+  }, [hasCompletedSetup, isAuthenticated, isApplicant]);
+
   // Simulate matching logic for demo mode
   const checkForMatchDemo = useCallback((profileId: string): boolean => {
     // Simulate 40% match rate for demo purposes
