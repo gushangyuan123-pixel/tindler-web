@@ -25,6 +25,7 @@ import {
   BCMatchConfirmation,
   BCMatches,
   BCChat,
+  BCMemberJoin,
 } from './pages/BC';
 import { BCAuthCallback } from './pages/BC/BCAuthCallback';
 
@@ -53,6 +54,7 @@ function BCRoutes() {
         <Route path="/match" element={<BCMatchConfirmation />} />
         <Route path="/matches" element={<BCMatches />} />
         <Route path="/chat/:matchId" element={<BCChat />} />
+        <Route path="/join" element={<BCMemberJoin />} />
       </Routes>
     </BCProvider>
   );

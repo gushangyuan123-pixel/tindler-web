@@ -22,6 +22,10 @@ urlpatterns = [
         'post': 'mark_read'
     }), name='mark-messages-read'),
 
+    # BC Member self-registration with invite code
+    path('bc-member/join/', views.BCMemberJoinView.as_view(), name='bc-member-join'),
+    path('bc-member/validate-code/', views.ValidateInviteCodeView.as_view(), name='validate-invite-code'),
+
     # Admin endpoints
     path('admin/check/', views.AdminCheckView.as_view(), name='admin-check'),
     path('admin/stats/', views.AdminStatsView.as_view(), name='admin-stats'),

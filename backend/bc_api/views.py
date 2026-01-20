@@ -701,3 +701,83 @@ class AdminStatsView(APIView):
             'confirmed_matches': BCMatch.objects.filter(status='confirmed').count(),
             'completed_matches': BCMatch.objects.filter(status='completed').count(),
         })
+
+
+class BCMemberJoinView(APIView):
+    """
+    Allow BC members to self-register with an invite code.
+    The invite code is validated, and if correct, creates/updates their profile.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        from django.utils import timezone
+
+        # Validate invite code
+        invite_code = request.data.get('invite_code', '')
+        valid_code = os.getenv('BC_INVITE_CODE', 'BC2024')
+
+        if invite_code != valid_code:
+            return Response(
+                {'error': 'Invalid invite code'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Check if user already has a BC member profile
+        if hasattr(request.user, 'bc_member_profile'):
+            return Response(
+                {'error': 'You already have a BC member profile'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get profile data from request
+        year = request.data.get('year')
+        major = request.data.get('major')
+        semesters_in_bc = request.data.get('semesters_in_bc', 1)
+        areas_of_expertise = request.data.get('areas_of_expertise', [])
+        availability = request.data.get('availability', '')
+        bio = request.data.get('bio', '')
+        project_experience = request.data.get('project_experience', '')
+
+        if not year or not major:
+            return Response(
+                {'error': 'Year and major are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Update user
+        user = request.user
+        user.user_type = 'bc_member'
+        user.has_completed_setup = True
+        user.save()
+
+        # Create BC member profile - auto-approved since they have the invite code
+        profile = BCMemberProfile.objects.create(
+            user=user,
+            year=year,
+            major=major,
+            semesters_in_bc=semesters_in_bc,
+            areas_of_expertise=areas_of_expertise,
+            availability=availability,
+            bio=bio,
+            project_experience=project_experience,
+            is_approved=True  # Auto-approve with valid invite code
+        )
+
+        return Response({
+            'success': True,
+            'profile': BCMemberProfileSerializer(profile).data
+        }, status=status.HTTP_201_CREATED)
+
+
+class ValidateInviteCodeView(APIView):
+    """Validate an invite code without authentication."""
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        invite_code = request.data.get('invite_code', '')
+        valid_code = os.getenv('BC_INVITE_CODE', 'BC2024')
+
+        return Response({
+            'valid': invite_code == valid_code
+        })

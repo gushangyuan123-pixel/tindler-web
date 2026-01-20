@@ -283,6 +283,31 @@ class BCAPIService {
     });
     return response.data;
   }
+
+  // ==================== BC MEMBER INVITE ====================
+
+  // Validate invite code (no auth required)
+  async validateInviteCode(inviteCode: string) {
+    const response = await this.client.post('/api/bc-member/validate-code/', {
+      invite_code: inviteCode,
+    });
+    return response.data;
+  }
+
+  // Join as BC member with invite code
+  async joinAsBCMember(data: {
+    invite_code: string;
+    year: string;
+    major: string;
+    semesters_in_bc?: number;
+    areas_of_expertise?: string[];
+    availability?: string;
+    bio?: string;
+    project_experience?: string;
+  }) {
+    const response = await this.client.post('/api/bc-member/join/', data);
+    return response.data;
+  }
 }
 
 export const bcApiService = new BCAPIService();
