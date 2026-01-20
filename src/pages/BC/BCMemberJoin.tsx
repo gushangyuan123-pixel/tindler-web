@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Coffee, Check, AlertCircle, Loader } from 'lucide-react';
+import { Coffee, Check, AlertCircle, Loader, Camera } from 'lucide-react';
 import { useBC } from '../../context/BCContext';
 import bcApiService from '../../services/bcApi';
 import { BC_EXPERTISE_AREAS, BC_AVAILABILITY_OPTIONS } from '../../services/types';
 
-const BC_MEMBER_YEARS = ['Sophomore', 'Junior', 'Senior'];
+const BC_MEMBER_YEARS = ['Freshman', 'Sophomore', 'Junior', 'Senior'];
 
 const MAJORS = [
   'Business Administration',
@@ -40,6 +40,9 @@ export function BCMemberJoin() {
   const [availability, setAvailability] = useState('');
   const [bio, setBio] = useState('');
   const [projectExperience, setProjectExperience] = useState('');
+  const [photoUrl, setPhotoUrl] = useState('');
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Validate invite code on mount
   useEffect(() => {
@@ -77,6 +80,45 @@ export function BCMemberJoin() {
         ? prev.filter(a => a !== area)
         : [...prev, area]
     );
+  };
+
+  // Photo handling
+  const handlePhotoClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image must be smaller than 5MB');
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+    setError(null);
+    try {
+      const result = await bcApiService.uploadPhoto(file);
+      setPhotoUrl(result.photo_url);
+    } catch (err: any) {
+      console.error('Failed to upload photo:', err);
+      setError(err.response?.data?.error || 'Failed to upload photo');
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
+  // Prevent Enter from submitting form in text inputs
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+    }
   };
 
   // Handle form submission
@@ -219,6 +261,47 @@ export function BCMemberJoin() {
           </div>
         )}
 
+        {/* Photo Upload */}
+        <div className="flex flex-col items-center">
+          <div className="relative">
+            <div className="w-24 h-24 bg-zinc-800 rounded-full overflow-hidden border-2 border-zinc-700">
+              {isUploadingPhoto ? (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Loader className="w-6 h-6 animate-spin text-cyan-500" />
+                </div>
+              ) : photoUrl ? (
+                <img src={photoUrl} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Camera className="w-8 h-8 text-zinc-500" />
+                </div>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={handlePhotoClick}
+              disabled={isUploadingPhoto}
+              className="absolute -bottom-1 -right-1 w-8 h-8 bg-cyan-500 rounded-full
+                       flex items-center justify-center hover:bg-cyan-400 transition-colors
+                       disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              {isUploadingPhoto ? (
+                <Loader className="w-4 h-4 text-black animate-spin" />
+              ) : (
+                <Camera className="w-4 h-4 text-black" />
+              )}
+            </button>
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handlePhotoChange}
+            className="hidden"
+          />
+          <p className="text-zinc-500 text-xs mt-2">Click to upload photo</p>
+        </div>
+
         {/* Year */}
         <div>
           <label className="block text-sm font-bold text-white mb-2">
@@ -251,13 +334,16 @@ export function BCMemberJoin() {
               <button
                 key={m}
                 type="button"
-                onClick={() => setMajor(m)}
+                onClick={() => {
+                  setMajor(m);
+                  if (m !== 'Other') setCustomMajor('');
+                }}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors
-                           ${major === m
+                           ${major === m || (m === 'Other' && customMajor && major === 'Other')
                              ? 'bg-cyan-500 text-black'
                              : 'bg-zinc-800 text-white hover:bg-zinc-700'}`}
               >
-                {m}
+                {m === 'Other' && customMajor && major === 'Other' ? customMajor : m}
               </button>
             ))}
           </div>
@@ -266,7 +352,8 @@ export function BCMemberJoin() {
               type="text"
               value={customMajor}
               onChange={(e) => setCustomMajor(e.target.value)}
-              placeholder="Enter your major"
+              onKeyDown={handleKeyDown}
+              placeholder="Enter your major and click elsewhere"
               className="w-full p-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white
                        placeholder-zinc-500 focus:outline-none focus:border-cyan-500"
             />
