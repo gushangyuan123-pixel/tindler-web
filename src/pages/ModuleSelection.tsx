@@ -15,7 +15,7 @@ export function ModuleSelection() {
         transition={{ duration: 0.5 }}
         className="mb-6"
       >
-        <span className="text-7xl">🧋</span>
+        <span className="text-7xl">☕</span>
       </motion.div>
 
       {/* Title */}

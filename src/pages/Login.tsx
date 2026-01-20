@@ -110,7 +110,7 @@ export function Login({ onSuccess }: LoginProps) {
         transition={{ duration: 0.5 }}
         className="mb-8"
       >
-        <span className="text-6xl">🧋</span>
+        <span className="text-6xl">☕</span>
       </motion.div>
 
       {/* Title */}
