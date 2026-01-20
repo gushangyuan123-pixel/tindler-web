@@ -459,3 +459,245 @@ class OAuthCallbackView(View):
 
         # If not authenticated, redirect to login
         return redirect(f"{settings.FRONTEND_URL}/bc?error=auth_failed")
+
+
+# ==================== ADMIN VIEWS ====================
+
+class IsAdminUser(permissions.BasePermission):
+    """Permission class to check if user is admin (is_staff=True)."""
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated and request.user.is_staff
+
+
+class AdminCheckView(APIView):
+    """Check if current user is an admin."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        return Response({
+            'is_admin': request.user.is_staff,
+            'email': request.user.email,
+            'name': request.user.name,
+        })
+
+
+class AdminPendingMembersView(APIView):
+    """List BC member applications pending approval."""
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        pending = BCMemberProfile.objects.filter(is_approved=False).select_related('user')
+        serializer = BCMemberProfileSerializer(pending, many=True)
+        return Response({'pending_members': serializer.data})
+
+
+class AdminApproveMemberView(APIView):
+    """Approve or reject a BC member application."""
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, member_id):
+        from django.utils import timezone
+
+        action = request.data.get('action')  # 'approve' or 'reject'
+
+        member = get_object_or_404(BCMemberProfile, id=member_id)
+
+        if action == 'approve':
+            member.is_approved = True
+            member.approved_by = request.user
+            member.approved_at = timezone.now()
+            member.save()
+
+            # Update user state
+            member.user.user_type = 'bc_member'
+            member.user.has_completed_setup = True
+            member.user.save()
+
+            return Response({
+                'status': 'approved',
+                'member': BCMemberProfileSerializer(member).data
+            })
+        elif action == 'reject':
+            # Delete the profile
+            user = member.user
+            member.delete()
+            user.user_type = None
+            user.has_completed_setup = False
+            user.save()
+
+            return Response({'status': 'rejected'})
+        else:
+            return Response(
+                {'error': 'Invalid action. Use "approve" or "reject"'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+class AdminAllApplicantsView(APIView):
+    """List all applicants."""
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        applicants = BCApplicantProfile.objects.all().select_related('user')
+        serializer = BCApplicantProfileSerializer(applicants, many=True)
+        return Response({'applicants': serializer.data})
+
+
+class AdminAllMatchesView(APIView):
+    """List all matches with their status."""
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        matches = BCMatch.objects.all().select_related(
+            'applicant', 'applicant__user',
+            'bc_member', 'bc_member__user'
+        )
+        serializer = BCMatchSerializer(matches, many=True)
+        return Response({'matches': serializer.data})
+
+
+class AdminApproveMatchView(APIView):
+    """Approve or reject a pending match."""
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, match_id):
+        from django.utils import timezone
+
+        action = request.data.get('action')  # 'confirm', 'reject', or 'complete'
+
+        match = get_object_or_404(BCMatch, id=match_id)
+
+        if action == 'confirm':
+            match.status = 'confirmed'
+            match.confirmed_by = request.user
+            match.confirmed_at = timezone.now()
+            match.save()
+
+            # Mark applicant as matched
+            match.applicant.has_been_matched = True
+            match.applicant.save()
+
+            # Send confirmation email
+            send_match_confirmed_notification(match)
+
+            return Response({
+                'status': 'confirmed',
+                'match': BCMatchSerializer(match).data
+            })
+        elif action == 'reject':
+            match.status = 'rejected'
+            match.confirmed_by = request.user
+            match.confirmed_at = timezone.now()
+            match.save()
+
+            return Response({'status': 'rejected'})
+        elif action == 'complete':
+            match.status = 'completed'
+            match.save()
+
+            return Response({'status': 'completed'})
+        else:
+            return Response(
+                {'error': 'Invalid action. Use "confirm", "reject", or "complete"'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+class AdminCreateMemberView(APIView):
+    """Create a BC member profile manually (for admins)."""
+    permission_classes = [IsAdminUser]
+
+    def post(self, request):
+        from django.utils import timezone
+
+        email = request.data.get('email')
+        name = request.data.get('name')
+        photo_url = request.data.get('photo_url', '')
+
+        # Profile fields
+        year = request.data.get('year')
+        major = request.data.get('major')
+        semesters_in_bc = request.data.get('semesters_in_bc', 1)
+        areas_of_expertise = request.data.get('areas_of_expertise', [])
+        availability = request.data.get('availability', '')
+        bio = request.data.get('bio', '')
+        project_experience = request.data.get('project_experience', '')
+
+        if not email or not name:
+            return Response(
+                {'error': 'Email and name are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get or create user
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={
+                'name': name,
+                'photo_url': photo_url,
+                'user_type': 'bc_member',
+                'has_completed_setup': True,
+            }
+        )
+
+        if not created:
+            # Update existing user
+            user.name = name
+            if photo_url:
+                user.photo_url = photo_url
+            user.user_type = 'bc_member'
+            user.has_completed_setup = True
+            user.save()
+
+        # Check if profile already exists
+        if hasattr(user, 'bc_member_profile'):
+            return Response(
+                {'error': 'This user already has a BC member profile'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Create profile (auto-approved since created by admin)
+        profile = BCMemberProfile.objects.create(
+            user=user,
+            year=year,
+            major=major,
+            semesters_in_bc=semesters_in_bc,
+            areas_of_expertise=areas_of_expertise,
+            availability=availability,
+            bio=bio,
+            project_experience=project_experience,
+            is_approved=True,
+            approved_by=request.user,
+            approved_at=timezone.now(),
+        )
+
+        return Response({
+            'status': 'created',
+            'member': BCMemberProfileSerializer(profile).data
+        }, status=status.HTTP_201_CREATED)
+
+
+class AdminAllMembersView(APIView):
+    """List all BC members (approved and pending)."""
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        members = BCMemberProfile.objects.all().select_related('user')
+        serializer = BCMemberProfileSerializer(members, many=True)
+        return Response({'members': serializer.data})
+
+
+class AdminStatsView(APIView):
+    """Get admin dashboard stats."""
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        return Response({
+            'total_members': BCMemberProfile.objects.filter(is_approved=True).count(),
+            'pending_members': BCMemberProfile.objects.filter(is_approved=False).count(),
+            'total_applicants': BCApplicantProfile.objects.count(),
+            'total_matches': BCMatch.objects.count(),
+            'pending_matches': BCMatch.objects.filter(status='pending').count(),
+            'confirmed_matches': BCMatch.objects.filter(status='confirmed').count(),
+            'completed_matches': BCMatch.objects.filter(status='completed').count(),
+        })

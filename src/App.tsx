@@ -28,6 +28,16 @@ import {
 } from './pages/BC';
 import { BCAuthCallback } from './pages/BC/BCAuthCallback';
 
+// Admin Pages
+import {
+  AdminDashboard,
+  AdminPendingMembers,
+  AdminAllMembers,
+  AdminApplicants,
+  AdminMatches as AdminMatchesPage,
+  AdminAddMember,
+} from './pages/Admin';
+
 // Components
 import { TabBar } from './components/TabBar';
 
@@ -116,6 +126,22 @@ function AppRoutes() {
   );
 }
 
+// Admin Routes Component
+function AdminRoutes() {
+  return (
+    <BCProvider>
+      <Routes>
+        <Route path="/" element={<AdminDashboard />} />
+        <Route path="/pending-members" element={<AdminPendingMembers />} />
+        <Route path="/members" element={<AdminAllMembers />} />
+        <Route path="/add-member" element={<AdminAddMember />} />
+        <Route path="/applicants" element={<AdminApplicants />} />
+        <Route path="/matches" element={<AdminMatchesPage />} />
+      </Routes>
+    </BCProvider>
+  );
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -124,6 +150,7 @@ function App() {
           <Routes>
             <Route path="/" element={<ModuleSelection />} />
             <Route path="/bc/*" element={<BCRoutes />} />
+            <Route path="/admin/*" element={<AdminRoutes />} />
             <Route path="/app/*" element={<AppRoutes />} />
           </Routes>
         </AppProvider>

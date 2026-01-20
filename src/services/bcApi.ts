@@ -212,6 +212,77 @@ class BCAPIService {
     const response = await this.client.post('/api/reset-profile/');
     return response.data;
   }
+
+  // ==================== ADMIN ENDPOINTS ====================
+
+  // Check if current user is admin
+  async checkAdmin() {
+    const response = await this.client.get('/api/admin/check/');
+    return response.data;
+  }
+
+  // Get admin dashboard stats
+  async getAdminStats() {
+    const response = await this.client.get('/api/admin/stats/');
+    return response.data;
+  }
+
+  // Get all BC members (approved and pending)
+  async getAdminAllMembers() {
+    const response = await this.client.get('/api/admin/members/');
+    return response.data;
+  }
+
+  // Get pending BC member applications
+  async getAdminPendingMembers() {
+    const response = await this.client.get('/api/admin/members/pending/');
+    return response.data;
+  }
+
+  // Approve or reject BC member application
+  async adminApproveMember(memberId: number, action: 'approve' | 'reject') {
+    const response = await this.client.post(`/api/admin/members/${memberId}/approve/`, {
+      action,
+    });
+    return response.data;
+  }
+
+  // Create BC member manually
+  async adminCreateMember(data: {
+    email: string;
+    name: string;
+    photo_url?: string;
+    year: string;
+    major: string;
+    semesters_in_bc?: number;
+    areas_of_expertise?: string[];
+    availability?: string;
+    bio?: string;
+    project_experience?: string;
+  }) {
+    const response = await this.client.post('/api/admin/members/create/', data);
+    return response.data;
+  }
+
+  // Get all applicants
+  async getAdminAllApplicants() {
+    const response = await this.client.get('/api/admin/applicants/');
+    return response.data;
+  }
+
+  // Get all matches
+  async getAdminAllMatches() {
+    const response = await this.client.get('/api/admin/matches/');
+    return response.data;
+  }
+
+  // Approve, reject, or complete a match
+  async adminApproveMatch(matchId: number, action: 'confirm' | 'reject' | 'complete') {
+    const response = await this.client.post(`/api/admin/matches/${matchId}/approve/`, {
+      action,
+    });
+    return response.data;
+  }
 }
 
 export const bcApiService = new BCAPIService();

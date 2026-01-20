@@ -1,10 +1,26 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Coffee, Users, Lock } from 'lucide-react';
+import { Coffee, Users, Lock, Shield } from 'lucide-react';
+import bcApiService from '../services/bcApi';
 
 export function ModuleSelection() {
   const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    // Check if current user is admin
+    const checkAdmin = async () => {
+      try {
+        const data = await bcApiService.checkAdmin();
+        setIsAdmin(data.is_admin);
+      } catch {
+        // Not logged in or not admin - that's fine
+        setIsAdmin(false);
+      }
+    };
+    checkAdmin();
+  }, []);
 
   return (
     <div className="min-h-screen bg-dark-gray flex flex-col items-center justify-center p-6 safe-top">
@@ -91,6 +107,27 @@ export function ModuleSelection() {
             </div>
           </div>
         </motion.button>
+
+        {/* Admin Panel - Only visible to admins */}
+        {isAdmin && (
+          <motion.button
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            onClick={() => navigate('/admin')}
+            className="w-full bg-gradient-to-r from-zinc-700 to-zinc-800 hover:from-zinc-600 hover:to-zinc-700 border-2 border-zinc-600 rounded-2xl p-6 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-cyan-500/20 rounded-xl flex items-center justify-center">
+                <Shield className="w-7 h-7 text-cyan-500" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-white">Admin Panel</h3>
+                <p className="text-sm text-zinc-400 mt-1">Manage BC members, applicants, and matches</p>
+              </div>
+            </div>
+          </motion.button>
+        )}
       </div>
 
       {/* Footer */}

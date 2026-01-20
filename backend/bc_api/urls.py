@@ -21,4 +21,15 @@ urlpatterns = [
     path('matches/<int:match_id>/messages/mark-read/', views.MessageViewSet.as_view({
         'post': 'mark_read'
     }), name='mark-messages-read'),
+
+    # Admin endpoints
+    path('admin/check/', views.AdminCheckView.as_view(), name='admin-check'),
+    path('admin/stats/', views.AdminStatsView.as_view(), name='admin-stats'),
+    path('admin/members/', views.AdminAllMembersView.as_view(), name='admin-all-members'),
+    path('admin/members/pending/', views.AdminPendingMembersView.as_view(), name='admin-pending-members'),
+    path('admin/members/<int:member_id>/approve/', views.AdminApproveMemberView.as_view(), name='admin-approve-member'),
+    path('admin/members/create/', views.AdminCreateMemberView.as_view(), name='admin-create-member'),
+    path('admin/applicants/', views.AdminAllApplicantsView.as_view(), name='admin-all-applicants'),
+    path('admin/matches/', views.AdminAllMatchesView.as_view(), name='admin-all-matches'),
+    path('admin/matches/<int:match_id>/approve/', views.AdminApproveMatchView.as_view(), name='admin-approve-match'),
 ]

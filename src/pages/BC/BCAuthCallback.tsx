@@ -7,7 +7,7 @@ import { useBC } from '../../context/BCContext';
 export function BCAuthCallback() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { loadUserFromAPI } = useBC();
+  const { loadUserFromAPI, setUserType } = useBC();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -27,9 +27,16 @@ export function BCAuthCallback() {
       // Load user into context, then navigate based on user state
       loadUserFromAPI()
         .then(() => {
-          // The context will have the user data now
-          // Let BCRoleSelection handle the redirect based on state
-          navigate('/bc');
+          // Check if there was an intended role before login
+          const intendedRole = localStorage.getItem('bc_intended_role');
+          if (intendedRole === 'applicant' || intendedRole === 'bc_member') {
+            localStorage.removeItem('bc_intended_role');
+            setUserType(intendedRole);
+            navigate('/bc/setup');
+          } else {
+            // No intended role, go to role selection
+            navigate('/bc');
+          }
         })
         .catch((err) => {
           console.error('Failed to load user:', err);
@@ -40,7 +47,7 @@ export function BCAuthCallback() {
       // No token, redirect to login
       navigate('/bc');
     }
-  }, [searchParams, navigate, loadUserFromAPI]);
+  }, [searchParams, navigate, loadUserFromAPI, setUserType]);
 
   return (
     <div className="min-h-screen bg-dark-gray flex flex-col items-center justify-center">

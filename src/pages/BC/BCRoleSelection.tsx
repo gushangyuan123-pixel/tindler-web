@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Users, Briefcase, LogIn, AlertCircle, Lock, Mail, Loader } from 'lucide-react';
+import { Users, AlertCircle, Lock, Mail, Loader } from 'lucide-react';
 import { useBC } from '../../context/BCContext';
 import bcApiService from '../../services/bcApi';
 
@@ -44,13 +44,14 @@ export function BCRoleSelection() {
   }, [isAuthenticated, userType, hasCompletedSetup, applicantMatch, navigate]);
 
   const handleRoleSelect = (role: 'applicant' | 'bc_member') => {
+    if (!isLoggedIn) {
+      // Must login first - store intended role and redirect to Google OAuth
+      localStorage.setItem('bc_intended_role', role);
+      window.location.href = bcApiService.getGoogleLoginUrl();
+      return;
+    }
     setUserType(role);
     navigate('/bc/setup');
-  };
-
-  const handleGoogleSignIn = () => {
-    // Redirect to Django's Google OAuth login
-    window.location.href = bcApiService.getGoogleLoginUrl();
   };
 
   // Show loading while checking auth
@@ -116,35 +117,13 @@ export function BCRoleSelection() {
         </motion.div>
       )}
 
-      {/* Sign in with Berkeley email option */}
-      {!isLoggedIn && (
-        <div className="px-6 mb-6">
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            onClick={handleGoogleSignIn}
-            className="w-full bg-white text-black p-4 border-3 border-black shadow-brutalist
-                       hover:shadow-none hover:translate-x-1 hover:translate-y-1
-                       transition-all duration-150 flex items-center justify-center gap-3"
-          >
-            <LogIn className="w-5 h-5" />
-            <span className="font-bold">Sign in with Berkeley Email</span>
-          </motion.button>
-          <p className="text-center text-medium-gray font-mono text-xs mt-2">
-            Use your @berkeley.edu email to save your profile
-          </p>
-        </div>
-      )}
 
-      {/* Divider */}
+      {/* Info text when not logged in */}
       {!isLoggedIn && (
         <div className="px-6 mb-6">
-          <div className="flex items-center gap-4">
-            <div className="flex-1 h-px bg-medium-gray/30" />
-            <span className="text-medium-gray font-mono text-xs">OR TRY DEMO MODE</span>
-            <div className="flex-1 h-px bg-medium-gray/30" />
-          </div>
+          <p className="text-center text-medium-gray font-mono text-xs">
+            Select a role below to sign in with your Berkeley email
+          </p>
         </div>
       )}
 
