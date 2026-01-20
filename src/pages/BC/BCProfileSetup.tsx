@@ -95,16 +95,34 @@ export function BCProfileSetup() {
   const [areasOfExpertise, setAreasOfExpertise] = useState<string[]>([]);
   const [availability, setAvailability] = useState('');
 
-  // Redirect if no user type selected OR if trying to set up as BC member
-  // BC member accounts can only be created by admins
+  const [isWhitelisted, setIsWhitelisted] = useState<boolean | null>(null);
+
+  // Check whitelist status for BC members and redirect if needed
   React.useEffect(() => {
-    if (!userType) {
-      navigate('/bc');
-    } else if (userType === 'bc_member') {
-      // BC members cannot self-register - redirect back with message
-      alert('BC member accounts can only be created by administrators. Please contact garv.agarwal.in@berkeley.edu to be added as a BC member.');
-      navigate('/bc');
-    }
+    const checkAccess = async () => {
+      if (!userType) {
+        navigate('/bc');
+        return;
+      }
+
+      if (userType === 'bc_member') {
+        // Check if user is whitelisted
+        try {
+          const status = await bcApiService.checkWhitelist();
+          if (!status.is_whitelisted) {
+            alert('You are not authorized to register as a BC member. Please contact garv.agarwal.in@berkeley.edu to be added to the whitelist.');
+            navigate('/bc');
+            return;
+          }
+          setIsWhitelisted(true);
+        } catch {
+          alert('Failed to verify BC member access. Please try again.');
+          navigate('/bc');
+        }
+      }
+    };
+
+    checkAccess();
   }, [userType, navigate]);
 
   const toggleExpertise = (area: string) => {
@@ -172,8 +190,50 @@ export function BCProfileSetup() {
             console.error('Failed to fetch discover profiles, using mock data:', discoverError);
             setProfiles(shuffleBCProfiles(mockBCMembers));
           }
+        } else {
+          // BC Member profile creation (for whitelisted users)
+          const result = await bcApiService.createBCMemberProfile({
+            year,
+            major,
+            semesters_in_bc: semestersInBC,
+            areas_of_expertise: areasOfExpertise,
+            availability,
+            bio,
+            project_experience: projectExperience,
+          });
+
+          const profile: BCMemberProfile = {
+            id: String(result.profile.id),
+            name: result.profile.user?.name || name,
+            photoUrl: result.profile.user?.photo_url || photoUrl,
+            year: result.profile.year,
+            major: result.profile.major,
+            semestersInBC: result.profile.semesters_in_bc,
+            areasOfExpertise: result.profile.areas_of_expertise || [],
+            availability: result.profile.availability,
+            bio: result.profile.bio,
+            projectExperience: result.profile.project_experience,
+          };
+          setCurrentProfile(profile);
+
+          // Fetch applicants from API
+          try {
+            const discoverResponse = await bcApiService.getDiscoverProfiles();
+            const discoverProfiles = discoverResponse.profiles || discoverResponse;
+            setProfiles(discoverProfiles.map((p: any) => ({
+              id: String(p.user?.id || p.id),
+              name: p.user?.name || '',
+              photoUrl: p.user?.photo_url || '/profiles/default.jpg',
+              role: p.role,
+              whyBC: p.why_bc,
+              relevantExperience: p.relevant_experience,
+              interests: p.interests || [],
+            })));
+          } catch (discoverError) {
+            console.error('Failed to fetch discover profiles, using mock data:', discoverError);
+            setProfiles(shuffleBCProfiles(mockBCApplicants));
+          }
         }
-        // Note: BC members are created by admin, not here
       } else {
         // Demo mode - use local state only
         if (isApplicant) {
@@ -220,9 +280,21 @@ export function BCProfileSetup() {
     ? name && applicantRole && whyBC && relevantExperience && interests.length > 0
     : name && year && major && bio && projectExperience && areasOfExpertise.length > 0 && availability;
 
-  // Don't render anything if user is BC member (they'll be redirected)
-  if (userType === 'bc_member' || !userType) {
+  // Don't render until we know if BC member is whitelisted
+  if (!userType) {
     return null;
+  }
+
+  // For BC members, wait for whitelist check
+  if (userType === 'bc_member' && isWhitelisted === null) {
+    return (
+      <div className="min-h-screen bg-dark-gray flex items-center justify-center">
+        <div className="text-center">
+          <Loader className="w-8 h-8 text-cyan-500 animate-spin mx-auto mb-4" />
+          <p className="text-medium-gray font-mono text-sm">Verifying access...</p>
+        </div>
+      </div>
+    );
   }
 
   return (

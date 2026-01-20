@@ -25,6 +25,7 @@ urlpatterns = [
     # BC Member self-registration with invite code
     path('bc-member/join/', views.BCMemberJoinView.as_view(), name='bc-member-join'),
     path('bc-member/validate-code/', views.ValidateInviteCodeView.as_view(), name='validate-invite-code'),
+    path('bc-member/check-whitelist/', views.CheckWhitelistView.as_view(), name='check-whitelist'),
 
     # Admin endpoints
     path('admin/check/', views.AdminCheckView.as_view(), name='admin-check'),

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Users, AlertCircle, Lock, Mail, Loader } from 'lucide-react';
+import { Users, AlertCircle, Lock, Mail, Loader, Coffee, Check } from 'lucide-react';
 import { useBC } from '../../context/BCContext';
 import bcApiService from '../../services/bcApi';
 
@@ -10,6 +10,8 @@ export function BCRoleSelection() {
   const [searchParams] = useSearchParams();
   const { setUserType, userType, hasCompletedSetup, applicantMatch, isAuthenticated, isLoading, loadUserFromAPI, apiUser, logout } = useBC();
   const [authError, setAuthError] = useState<string | null>(null);
+  const [isWhitelisted, setIsWhitelisted] = useState<boolean | null>(null);
+  const [checkingWhitelist, setCheckingWhitelist] = useState(false);
 
   // Check if user has a token (primary auth check)
   const hasToken = bcApiService.isAuthenticated();
@@ -37,6 +39,28 @@ export function BCRoleSelection() {
       loadUserFromAPI();
     }
   }, [hasToken, isAuthenticated, isLoading, loadUserFromAPI]);
+
+  // Check whitelist status when logged in
+  useEffect(() => {
+    const checkWhitelist = async () => {
+      if (isLoggedIn && isWhitelisted === null && !checkingWhitelist) {
+        setCheckingWhitelist(true);
+        try {
+          const status = await bcApiService.checkWhitelist();
+          setIsWhitelisted(status.is_whitelisted);
+          // If already has profile, redirect to discover
+          if (status.has_profile) {
+            navigate('/bc/discover');
+          }
+        } catch {
+          setIsWhitelisted(false);
+        } finally {
+          setCheckingWhitelist(false);
+        }
+      }
+    };
+    checkWhitelist();
+  }, [isLoggedIn, isWhitelisted, checkingWhitelist, navigate]);
 
   // If already set up, redirect appropriately
   useEffect(() => {
@@ -173,33 +197,69 @@ export function BCRoleSelection() {
           </div>
         </motion.button>
 
-        {/* BC Member Card - Not clickable, admin-only */}
-        <motion.div
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="w-full bg-gray-100 text-black p-6 border-3 border-gray-400 opacity-75 text-left"
-        >
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-gray-400 flex items-center justify-center">
-              <Lock className="w-8 h-8 text-gray-600" />
+        {/* BC Member Card - Clickable only if whitelisted */}
+        {isLoggedIn && isWhitelisted ? (
+          <motion.button
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            onClick={() => handleRoleSelect('bc_member')}
+            className="w-full bg-white text-black p-6 border-3 border-black shadow-brutalist-lg
+                       hover:shadow-none hover:translate-x-1 hover:translate-y-1
+                       transition-all duration-150 text-left"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 bg-teal-500 flex items-center justify-center">
+                <Coffee className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <h2 className="text-xl font-bold">I'm a BC Member</h2>
+                  <span className="bg-teal-500 text-white text-xs px-2 py-0.5 font-mono flex items-center gap-1">
+                    <Check className="w-3 h-3" /> VERIFIED
+                  </span>
+                </div>
+                <p className="text-medium-gray font-mono text-sm">
+                  You're on the BC member list - set up your profile
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-xl font-bold mb-1 text-gray-600">I'm a BC Member</h2>
-              <p className="text-gray-500 font-mono text-sm">
-                BC member accounts are created by admins only
-              </p>
+            <div className="mt-4 pt-4 border-t-2 border-light-gray">
+              <ul className="space-y-2 text-sm text-medium-gray font-mono">
+                <li>• Create your BC member profile</li>
+                <li>• Browse applicant profiles</li>
+                <li>• Match with applicants for coffee chats</li>
+              </ul>
             </div>
-          </div>
-          <div className="mt-4 pt-4 border-t-2 border-gray-300">
-            <div className="bg-cyan-500/10 border border-cyan-500/30 p-3 rounded">
-              <p className="text-sm text-cyan-700 font-mono flex items-center gap-2">
-                <Mail className="w-4 h-4" />
-                <span>Contact <strong>garv.agarwal.in@berkeley.edu</strong> to be added as a BC member</span>
-              </p>
+          </motion.button>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="w-full bg-gray-100 text-black p-6 border-3 border-gray-400 opacity-75 text-left"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 bg-gray-400 flex items-center justify-center">
+                <Lock className="w-8 h-8 text-gray-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold mb-1 text-gray-600">I'm a BC Member</h2>
+                <p className="text-gray-500 font-mono text-sm">
+                  {checkingWhitelist ? 'Checking access...' : 'BC member accounts require admin approval'}
+                </p>
+              </div>
             </div>
-          </div>
-        </motion.div>
+            <div className="mt-4 pt-4 border-t-2 border-gray-300">
+              <div className="bg-cyan-500/10 border border-cyan-500/30 p-3 rounded">
+                <p className="text-sm text-cyan-700 font-mono flex items-center gap-2">
+                  <Mail className="w-4 h-4" />
+                  <span>Contact <strong>garv.agarwal.in@berkeley.edu</strong> to be added as a BC member</span>
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </div>
 
       {/* Footer */}

@@ -705,21 +705,28 @@ class AdminStatsView(APIView):
 
 class BCMemberJoinView(APIView):
     """
-    Allow BC members to self-register with an invite code.
-    The invite code is validated, and if correct, creates/updates their profile.
+    Allow BC members to self-register via:
+    1. Valid invite code, OR
+    2. Being on the email whitelist
+
+    Creates their profile after validation.
     """
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         from django.utils import timezone
+        from .models import BCMemberWhitelist
 
-        # Validate invite code
+        # Check authorization: either valid invite code OR on whitelist
         invite_code = request.data.get('invite_code', '')
         valid_code = settings.BC_INVITE_CODE
 
-        if invite_code != valid_code:
+        is_whitelisted = BCMemberWhitelist.objects.filter(email__iexact=request.user.email).exists()
+        has_valid_invite = invite_code == valid_code
+
+        if not has_valid_invite and not is_whitelisted:
             return Response(
-                {'error': 'Invalid invite code'},
+                {'error': 'You are not authorized to register as a BC member. Contact admin to be added to the whitelist.'},
                 status=status.HTTP_403_FORBIDDEN
             )
 
@@ -751,7 +758,7 @@ class BCMemberJoinView(APIView):
         user.has_completed_setup = True
         user.save()
 
-        # Create BC member profile - auto-approved since they have the invite code
+        # Create BC member profile - auto-approved since they're authorized
         profile = BCMemberProfile.objects.create(
             user=user,
             year=year,
@@ -761,7 +768,7 @@ class BCMemberJoinView(APIView):
             availability=availability,
             bio=bio,
             project_experience=project_experience,
-            is_approved=True  # Auto-approve with valid invite code
+            is_approved=True  # Auto-approve for whitelisted/invite code users
         )
 
         return Response({
@@ -780,4 +787,20 @@ class ValidateInviteCodeView(APIView):
 
         return Response({
             'valid': invite_code == valid_code
+        })
+
+
+class CheckWhitelistView(APIView):
+    """Check if the current authenticated user is on the BC member whitelist."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        from .models import BCMemberWhitelist
+        is_whitelisted = BCMemberWhitelist.objects.filter(email__iexact=request.user.email).exists()
+        has_profile = hasattr(request.user, 'bc_member_profile')
+
+        return Response({
+            'is_whitelisted': is_whitelisted,
+            'has_profile': has_profile,
+            'user_type': request.user.user_type,
         })

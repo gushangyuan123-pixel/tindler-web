@@ -193,3 +193,34 @@ class BCSwipe(models.Model):
 
     def __str__(self):
         return f"{self.swiper.name} {self.direction}d {self.target.name}"
+
+
+class BCMemberWhitelist(models.Model):
+    """
+    Whitelist of approved BC member emails.
+
+    Admin adds emails here. When a user logs in via Google OAuth,
+    if their email is on this list, they're automatically recognized
+    as a BC member and can complete their profile setup.
+    """
+    email = models.EmailField(unique=True, help_text="Berkeley email of the BC member")
+    name = models.CharField(max_length=255, blank=True, help_text="Optional: BC member's name for reference")
+    added_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='whitelist_entries_added'
+    )
+    added_at = models.DateTimeField(auto_now_add=True)
+    notes = models.TextField(blank=True, help_text="Optional notes about this member")
+
+    class Meta:
+        verbose_name = "BC Member Whitelist Entry"
+        verbose_name_plural = "BC Member Whitelist"
+        ordering = ['-added_at']
+
+    def __str__(self):
+        if self.name:
+            return f"{self.name} ({self.email})"
+        return self.email

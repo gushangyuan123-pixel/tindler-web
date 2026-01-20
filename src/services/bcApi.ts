@@ -308,6 +308,36 @@ class BCAPIService {
     const response = await this.client.post('/api/bc-member/join/', data);
     return response.data;
   }
+
+  // ==================== BC MEMBER WHITELIST ====================
+
+  // Check if current user is on BC member whitelist
+  async checkWhitelist(): Promise<{
+    is_whitelisted: boolean;
+    has_profile: boolean;
+    user_type: string | null;
+  }> {
+    const response = await this.client.get('/api/bc-member/check-whitelist/');
+    return response.data;
+  }
+
+  // Create BC member profile (for whitelisted users - no invite code needed)
+  async createBCMemberProfile(data: {
+    year: string;
+    major: string;
+    semesters_in_bc?: number;
+    areas_of_expertise?: string[];
+    availability?: string;
+    bio?: string;
+    project_experience?: string;
+  }) {
+    // Use the join endpoint with a special whitelist flag
+    const response = await this.client.post('/api/bc-member/join/', {
+      ...data,
+      use_whitelist: true,
+    });
+    return response.data;
+  }
 }
 
 export const bcApiService = new BCAPIService();

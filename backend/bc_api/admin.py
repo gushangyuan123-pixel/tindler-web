@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils import timezone
 from django.utils.html import format_html
-from .models import User, BCMemberProfile, BCApplicantProfile, BCMatch, BCMessage, BCSwipe
+from .models import User, BCMemberProfile, BCApplicantProfile, BCMatch, BCMessage, BCSwipe, BCMemberWhitelist
 from .emails import send_match_confirmed_notification
 
 
@@ -216,3 +216,33 @@ class BCSwipeAdmin(admin.ModelAdmin):
     list_display = ('swiper', 'target', 'direction', 'created_at')
     list_filter = ('direction', 'created_at')
     search_fields = ('swiper__name', 'target__name')
+
+
+@admin.register(BCMemberWhitelist)
+class BCMemberWhitelistAdmin(admin.ModelAdmin):
+    list_display = ('email', 'name', 'added_by', 'added_at', 'is_registered')
+    list_filter = ('added_at',)
+    search_fields = ('email', 'name')
+    readonly_fields = ('added_by', 'added_at')
+    ordering = ('-added_at',)
+
+    fieldsets = (
+        (None, {'fields': ('email', 'name')}),
+        ('Notes', {'fields': ('notes',), 'classes': ('collapse',)}),
+        ('Metadata', {'fields': ('added_by', 'added_at'), 'classes': ('collapse',)}),
+    )
+
+    def is_registered(self, obj):
+        """Check if this whitelisted email has registered."""
+        user = User.objects.filter(email=obj.email).first()
+        if user:
+            if hasattr(user, 'bc_member_profile'):
+                return format_html('<span style="color: green;">✓ Profile Complete</span>')
+            return format_html('<span style="color: orange;">⏳ Logged in, no profile</span>')
+        return format_html('<span style="color: gray;">Not registered yet</span>')
+    is_registered.short_description = 'Registration Status'
+
+    def save_model(self, request, obj, form, change):
+        if not change:  # New entry
+            obj.added_by = request.user
+        super().save_model(request, obj, form, change)

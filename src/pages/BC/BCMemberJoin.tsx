@@ -147,6 +147,9 @@ export function BCMemberJoin() {
         project_experience: projectExperience,
       });
 
+      // Clear stored invite code
+      localStorage.removeItem('bc_invite_code');
+
       // Update context
       setUserType('bc_member');
       setCurrentProfile({

@@ -24,14 +24,42 @@ export function BCAuthCallback() {
       // Store the token
       bcApiService.setToken(token);
 
-      // Load user into context, then navigate based on user state
+      // Load user into context, then check whitelist and navigate
       loadUserFromAPI()
-        .then(() => {
+        .then(async () => {
           // Check if there was an intended role before login
           const intendedRole = localStorage.getItem('bc_intended_role');
-          if (intendedRole === 'applicant' || intendedRole === 'bc_member') {
-            localStorage.removeItem('bc_intended_role');
-            setUserType(intendedRole);
+          const inviteCode = localStorage.getItem('bc_invite_code');
+
+          // Clear stored values
+          localStorage.removeItem('bc_intended_role');
+          localStorage.removeItem('bc_invite_code');
+
+          // Check whitelist status
+          try {
+            const whitelistStatus = await bcApiService.checkWhitelist();
+
+            // If user is whitelisted BC member without profile, go to setup
+            if (whitelistStatus.is_whitelisted && !whitelistStatus.has_profile) {
+              setUserType('bc_member');
+              navigate('/bc/setup');
+              return;
+            }
+
+            // If user already has BC member profile, go to discover
+            if (whitelistStatus.has_profile) {
+              navigate('/bc/discover');
+              return;
+            }
+          } catch (err) {
+            console.log('Whitelist check failed, continuing with normal flow');
+          }
+
+          // BC member with invite code - redirect back to join page
+          if (intendedRole === 'bc_member' && inviteCode) {
+            navigate(`/bc/join?code=${inviteCode}`);
+          } else if (intendedRole === 'applicant') {
+            setUserType('applicant');
             navigate('/bc/setup');
           } else {
             // No intended role, go to role selection

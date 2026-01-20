@@ -268,12 +268,16 @@ export function BCDiscover() {
             <Coffee className="w-10 h-10 text-cyan-500" />
           </div>
           <h2 className="text-xl font-bold text-white mb-2 text-center">
-            No more profiles
+            {likedIds.length === 0 && !isApplicant
+              ? "No applicants yet"
+              : "No more profiles"}
           </h2>
           <p className="text-medium-gray font-mono text-sm text-center mb-6">
             {isApplicant
               ? "You've seen all available BC members. Check back later for new members!"
-              : "You've reviewed all applicants. Check back later for new applications!"}
+              : likedIds.length === 0
+                ? "Applicants will appear here once they sign up and create their profiles."
+                : "You've reviewed all applicants. Check back later for new applications!"}
           </p>
           <button
             onClick={handleRefresh}
