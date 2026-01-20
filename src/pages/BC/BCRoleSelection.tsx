@@ -24,12 +24,19 @@ export function BCRoleSelection() {
     }
   }, [searchParams]);
 
-  // Load user data if authenticated but no user data yet
+  // Auto-redirect to Google login if not authenticated
   useEffect(() => {
-    if (bcApiService.isAuthenticated() && !isAuthenticated && !isLoading) {
+    // If no token, redirect to Google OAuth immediately
+    if (!hasToken && !isLoading) {
+      window.location.href = bcApiService.getGoogleLoginUrl();
+      return;
+    }
+
+    // If has token but no user data, load it
+    if (hasToken && !isAuthenticated && !isLoading) {
       loadUserFromAPI();
     }
-  }, [isAuthenticated, isLoading, loadUserFromAPI]);
+  }, [hasToken, isAuthenticated, isLoading, loadUserFromAPI]);
 
   // If already set up, redirect appropriately
   useEffect(() => {
@@ -41,7 +48,13 @@ export function BCRoleSelection() {
         navigate('/bc/discover');
       }
     }
-  }, [isAuthenticated, userType, hasCompletedSetup, applicantMatch, navigate]);
+
+    // If authenticated but not set up, go directly to setup as applicant
+    if (isAuthenticated && !hasCompletedSetup) {
+      setUserType('applicant');
+      navigate('/bc/setup');
+    }
+  }, [isAuthenticated, userType, hasCompletedSetup, applicantMatch, navigate, setUserType]);
 
   const handleRoleSelect = (role: 'applicant' | 'bc_member') => {
     if (!isLoggedIn) {
@@ -54,13 +67,15 @@ export function BCRoleSelection() {
     navigate('/bc/setup');
   };
 
-  // Show loading while checking auth
-  if (isLoading) {
+  // Show loading while checking auth or redirecting to Google
+  if (isLoading || !hasToken) {
     return (
       <div className="min-h-screen bg-dark-gray flex items-center justify-center">
         <div className="text-center">
           <Loader className="w-8 h-8 text-cyan-500 animate-spin mx-auto mb-4" />
-          <p className="text-medium-gray font-mono text-sm">Loading...</p>
+          <p className="text-medium-gray font-mono text-sm">
+            {!hasToken ? 'Redirecting to Berkeley login...' : 'Loading...'}
+          </p>
         </div>
       </div>
     );
