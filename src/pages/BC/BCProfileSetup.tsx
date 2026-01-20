@@ -226,9 +226,9 @@ export function BCProfileSetup() {
   }
 
   return (
-    <div className="min-h-screen bg-dark-gray">
+    <div className="h-screen bg-dark-gray flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-dark-gray border-b-3 border-black">
+      <div className="flex-shrink-0 bg-dark-gray border-b-3 border-black z-10">
         <div className="flex items-center justify-between px-4 py-3">
           <button
             onClick={() => navigate('/bc')}
@@ -246,7 +246,7 @@ export function BCProfileSetup() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="px-4 py-6 space-y-6 pb-32 overflow-y-auto">
+      <form onSubmit={handleSubmit} className="flex-1 px-4 py-6 space-y-6 pb-32 overflow-y-auto">
         {/* Photo */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
