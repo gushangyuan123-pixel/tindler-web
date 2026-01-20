@@ -715,7 +715,7 @@ class BCMemberJoinView(APIView):
 
         # Validate invite code
         invite_code = request.data.get('invite_code', '')
-        valid_code = os.getenv('BC_INVITE_CODE', 'garvisawesome')
+        valid_code = settings.BC_INVITE_CODE
 
         if invite_code != valid_code:
             return Response(
@@ -776,7 +776,7 @@ class ValidateInviteCodeView(APIView):
 
     def post(self, request):
         invite_code = request.data.get('invite_code', '')
-        valid_code = os.getenv('BC_INVITE_CODE', 'garvisawesome')
+        valid_code = settings.BC_INVITE_CODE
 
         return Response({
             'valid': invite_code == valid_code

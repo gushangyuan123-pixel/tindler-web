@@ -246,7 +246,7 @@ export function BCProfileSetup() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="px-4 py-6 space-y-6 pb-24">
+      <form onSubmit={handleSubmit} className="px-4 py-6 space-y-6 pb-32 overflow-y-auto">
         {/* Photo */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

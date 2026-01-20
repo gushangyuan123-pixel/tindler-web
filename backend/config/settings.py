@@ -254,3 +254,6 @@ REST_AUTH = {
     'USE_JWT': False,
     'TOKEN_MODEL': 'rest_framework.authtoken.models.Token',
 }
+
+# BC Member invite code for self-registration
+BC_INVITE_CODE = os.getenv('BC_INVITE_CODE', 'garvisawesome')
