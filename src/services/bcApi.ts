@@ -322,7 +322,7 @@ class BCAPIService {
   }
 
   // Create BC member profile (for whitelisted users - no invite code needed)
-  async createBCMemberProfile(data: {
+  async createBCMemberProfileWhitelisted(data: {
     year: string;
     major: string;
     semesters_in_bc?: number;

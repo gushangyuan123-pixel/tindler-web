@@ -192,7 +192,7 @@ export function BCProfileSetup() {
           }
         } else {
           // BC Member profile creation (for whitelisted users)
-          const result = await bcApiService.createBCMemberProfile({
+          const result = await bcApiService.createBCMemberProfileWhitelisted({
             year,
             major,
             semesters_in_bc: semestersInBC,

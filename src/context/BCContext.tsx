@@ -100,6 +100,8 @@ type BCAction =
   | { type: 'ADD_PASSED_ID'; payload: string }
   | { type: 'SET_APPLICANT_MATCH'; payload: BCMatch }
   | { type: 'ADD_MEMBER_MATCH'; payload: BCMatch }
+  | { type: 'SET_MEMBER_MATCHES'; payload: BCMatch[] }
+  | { type: 'SET_MATCH_MESSAGES'; payload: { matchId: string; messages: BCMessage[] } }
   | { type: 'ADD_MATCHED_APPLICANT_ID'; payload: string }
   | { type: 'SHOW_MATCH_POPUP'; payload: BCMatch }
   | { type: 'HIDE_MATCH_POPUP' }
@@ -174,6 +176,35 @@ function bcReducer(state: BCState, action: BCAction): BCState {
         ...state,
         memberMatches: [action.payload, ...state.memberMatches],
       };
+
+    case 'SET_MEMBER_MATCHES':
+      return {
+        ...state,
+        memberMatches: action.payload,
+      };
+
+    case 'SET_MATCH_MESSAGES': {
+      const { matchId, messages } = action.payload;
+
+      // Update applicant match messages
+      if (state.applicantMatch && state.applicantMatch.id === matchId) {
+        return {
+          ...state,
+          applicantMatch: {
+            ...state.applicantMatch,
+            messages,
+          },
+        };
+      }
+
+      // Update member matches messages
+      return {
+        ...state,
+        memberMatches: state.memberMatches.map((m) =>
+          m.id === matchId ? { ...m, messages } : m
+        ),
+      };
+    }
 
     case 'ADD_MATCHED_APPLICANT_ID':
       return {
@@ -257,6 +288,8 @@ interface BCContextType extends BCState {
   addPassedId: (id: string) => void;
   setApplicantMatch: (match: BCMatch) => void;
   addMemberMatch: (match: BCMatch) => void;
+  setMemberMatches: (matches: BCMatch[]) => void;
+  setMatchMessages: (matchId: string, messages: BCMessage[]) => void;
   addMatchedApplicantId: (id: string) => void;
   showMatch: (match: BCMatch) => void;
   hideMatchPopup: () => void;
@@ -264,6 +297,8 @@ interface BCContextType extends BCState {
   resetBCState: () => void;
   getAvailableProfiles: () => (BCMemberProfile | BCApplicantProfile)[];
   loadUserFromAPI: () => Promise<void>;
+  loadMatchesFromAPI: () => Promise<void>;
+  loadMessagesFromAPI: (matchId: string) => Promise<void>;
   logout: () => Promise<void>;
   isApplicant: boolean;
   isBCMember: boolean;
@@ -274,6 +309,51 @@ const BCContext = createContext<BCContextType | null>(null);
 
 export function BCProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(bcReducer, initialState);
+
+  // Convert API message to frontend format
+  const convertAPIMessage = (msg: any, currentUserId: string): BCMessage => ({
+    id: String(msg.id),
+    matchId: String(msg.match),
+    senderId: String(msg.sender),
+    content: msg.content,
+    createdAt: new Date(msg.created_at),
+    isFromCurrentUser: String(msg.sender) === currentUserId,
+  });
+
+  // Convert API match to frontend format
+  const convertAPIMatch = (match: any, userType: BCUserType): BCMatch => {
+    const applicantProfile: BCApplicantProfile = {
+      id: String(match.applicant?.user?.id || match.applicant?.id),
+      name: match.applicant?.user?.name || '',
+      photoUrl: match.applicant?.user?.photo_url || '/profiles/default.jpg',
+      role: match.applicant?.role || '',
+      whyBC: match.applicant?.why_bc || '',
+      relevantExperience: match.applicant?.relevant_experience || '',
+      interests: match.applicant?.interests || [],
+    };
+
+    const memberProfile: BCMemberProfile = {
+      id: String(match.bc_member?.user?.id || match.bc_member?.id),
+      name: match.bc_member?.user?.name || '',
+      photoUrl: match.bc_member?.user?.photo_url || '/profiles/default.jpg',
+      year: match.bc_member?.year || '',
+      major: match.bc_member?.major || '',
+      semestersInBC: match.bc_member?.semesters_in_bc || 1,
+      areasOfExpertise: match.bc_member?.areas_of_expertise || [],
+      availability: match.bc_member?.availability || '',
+      bio: match.bc_member?.bio || '',
+      projectExperience: match.bc_member?.project_experience || '',
+    };
+
+    return {
+      id: String(match.id),
+      applicant: applicantProfile,
+      bcMember: memberProfile,
+      matchedAt: new Date(match.matched_at || match.created_at),
+      messages: [],
+      status: match.status, // 'pending', 'confirmed', 'completed', 'rejected'
+    };
+  };
 
   // Convert API profile to frontend format
   const convertAPIProfile = (profile: any, userType: BCUserType): BCMemberProfile | BCApplicantProfile | null => {
@@ -337,6 +417,49 @@ export function BCProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Load matches from API
+  const loadMatchesFromAPI = useCallback(async () => {
+    if (!bcApiService.isAuthenticated() || !state.userType) {
+      return;
+    }
+
+    try {
+      const response = await bcApiService.getMatches();
+      const matches = (response.results || response || []).map((m: any) =>
+        convertAPIMatch(m, state.userType!)
+      );
+
+      if (state.userType === 'applicant') {
+        // Applicants can only have one match
+        if (matches.length > 0) {
+          dispatch({ type: 'SET_APPLICANT_MATCH', payload: matches[0] });
+        }
+      } else {
+        dispatch({ type: 'SET_MEMBER_MATCHES', payload: matches });
+      }
+    } catch (error) {
+      console.error('Failed to load matches from API:', error);
+    }
+  }, [state.userType]);
+
+  // Load messages for a specific match from API
+  const loadMessagesFromAPI = useCallback(async (matchId: string) => {
+    if (!bcApiService.isAuthenticated()) {
+      return;
+    }
+
+    try {
+      const response = await bcApiService.getMessages(parseInt(matchId));
+      const messagesData = response.results || response || [];
+      const currentUserId = state.apiUser?.id ? String(state.apiUser.id) : '';
+      const messages = messagesData.map((m: any) => convertAPIMessage(m, currentUserId));
+
+      dispatch({ type: 'SET_MATCH_MESSAGES', payload: { matchId, messages } });
+    } catch (error) {
+      console.error('Failed to load messages from API:', error);
+    }
+  }, [state.apiUser]);
+
   // Logout function
   const logout = useCallback(async () => {
     try {
@@ -356,6 +479,13 @@ export function BCProvider({ children }: { children: ReactNode }) {
       loadUserFromAPI();
     }
   }, [loadUserFromAPI]);
+
+  // Load matches when user is authenticated and has completed setup
+  useEffect(() => {
+    if (state.isAuthenticated && state.hasCompletedSetup && state.userType) {
+      loadMatchesFromAPI();
+    }
+  }, [state.isAuthenticated, state.hasCompletedSetup, state.userType, loadMatchesFromAPI]);
 
   // Save state to localStorage whenever important state changes (for demo mode / offline)
   useEffect(() => {
@@ -406,6 +536,14 @@ export function BCProvider({ children }: { children: ReactNode }) {
 
   const addMemberMatch = useCallback((match: BCMatch) => {
     dispatch({ type: 'ADD_MEMBER_MATCH', payload: match });
+  }, []);
+
+  const setMemberMatches = useCallback((matches: BCMatch[]) => {
+    dispatch({ type: 'SET_MEMBER_MATCHES', payload: matches });
+  }, []);
+
+  const setMatchMessages = useCallback((matchId: string, messages: BCMessage[]) => {
+    dispatch({ type: 'SET_MATCH_MESSAGES', payload: { matchId, messages } });
   }, []);
 
   const addMatchedApplicantId = useCallback((id: string) => {
@@ -464,6 +602,8 @@ export function BCProvider({ children }: { children: ReactNode }) {
         addPassedId,
         setApplicantMatch,
         addMemberMatch,
+        setMemberMatches,
+        setMatchMessages,
         addMatchedApplicantId,
         showMatch,
         hideMatchPopup,
@@ -471,6 +611,8 @@ export function BCProvider({ children }: { children: ReactNode }) {
         resetBCState,
         getAvailableProfiles,
         loadUserFromAPI,
+        loadMatchesFromAPI,
+        loadMessagesFromAPI,
         logout,
         isApplicant,
         isBCMember,

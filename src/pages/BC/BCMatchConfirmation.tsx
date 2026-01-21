@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Coffee, MessageCircle, Calendar, Star, GraduationCap, Clock, BookOpen } from 'lucide-react';
+import { Coffee, MessageCircle, Calendar, Star, GraduationCap, Clock, BookOpen, CheckCircle, AlertCircle } from 'lucide-react';
 import { useBC } from '../../context/BCContext';
 import { BCHeader } from '../../components/BC/BCHeader';
 
 export function BCMatchConfirmation() {
   const navigate = useNavigate();
-  const { userType, applicantMatch, isApplicant } = useBC();
+  const { userType, applicantMatch, isApplicant, isAuthenticated } = useBC();
 
   // Redirect if not an applicant or no match
   useEffect(() => {
@@ -27,26 +27,57 @@ export function BCMatchConfirmation() {
   if (!applicantMatch) return null;
 
   const bcMember = applicantMatch.bcMember;
+  const matchStatus = (applicantMatch as any).status || 'confirmed';
+  const isPending = matchStatus === 'pending' && isAuthenticated;
+  const isConfirmed = matchStatus === 'confirmed';
 
   return (
     <div className="min-h-screen bg-dark-gray flex flex-col">
       <BCHeader showBack={false} title="Your Coffee Chat" />
 
       <div className="flex-1 px-4 py-6 overflow-y-auto">
-        {/* Success Banner */}
+        {/* Status Banner */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-cyan-500 border-3 border-black p-4 mb-6 text-center"
+          className={`border-3 border-black p-4 mb-6 text-center ${
+            isPending ? 'bg-yellow-500' : 'bg-cyan-500'
+          }`}
         >
           <div className="flex items-center justify-center gap-2 mb-2">
-            <Coffee className="w-6 h-6 text-black" />
-            <span className="font-bold text-lg">COFFEE CHAT CONFIRMED!</span>
+            {isPending ? (
+              <>
+                <Clock className="w-6 h-6 text-black" />
+                <span className="font-bold text-lg">PENDING APPROVAL</span>
+              </>
+            ) : (
+              <>
+                <CheckCircle className="w-6 h-6 text-black" />
+                <span className="font-bold text-lg">COFFEE CHAT CONFIRMED!</span>
+              </>
+            )}
           </div>
           <p className="text-sm font-mono">
-            You've been matched with a BC member
+            {isPending
+              ? 'Waiting for admin to confirm your match'
+              : "You've been matched with a BC member"}
           </p>
         </motion.div>
+
+        {/* Pending Notice */}
+        {isPending && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-yellow-100 border-2 border-yellow-500 p-3 mb-6 flex items-start gap-3"
+          >
+            <AlertCircle className="w-5 h-5 text-yellow-700 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-yellow-800 font-mono">
+              Your match is pending admin approval. You'll be able to message once it's confirmed.
+            </p>
+          </motion.div>
+        )}
 
         {/* BC Member Card */}
         <motion.div
@@ -159,23 +190,36 @@ export function BCMatchConfirmation() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
         >
-          <button
-            onClick={() => navigate(`/bc/chat/${applicantMatch.id}`)}
-            className="w-full py-4 bg-cyan-500 text-black font-bold border-3 border-black
-                       shadow-brutalist flex items-center justify-center gap-2
-                       hover:shadow-none hover:translate-x-1 hover:translate-y-1
-                       transition-all"
-          >
-            <MessageCircle className="w-5 h-5" />
-            MESSAGE {bcMember.name.split(' ')[0].toUpperCase()}
-          </button>
+          {isPending ? (
+            <button
+              disabled
+              className="w-full py-4 bg-gray-300 text-gray-500 font-bold border-3 border-black
+                         flex items-center justify-center gap-2 cursor-not-allowed"
+            >
+              <Clock className="w-5 h-5" />
+              WAITING FOR APPROVAL
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate(`/bc/chat/${applicantMatch.id}`)}
+              className="w-full py-4 bg-cyan-500 text-black font-bold border-3 border-black
+                         shadow-brutalist flex items-center justify-center gap-2
+                         hover:shadow-none hover:translate-x-1 hover:translate-y-1
+                         transition-all"
+            >
+              <MessageCircle className="w-5 h-5" />
+              MESSAGE {bcMember.name.split(' ')[0].toUpperCase()}
+            </button>
+          )}
         </motion.div>
       </div>
 
       {/* Footer note */}
       <div className="px-4 pb-6 text-center">
         <p className="text-xs text-medium-gray font-mono">
-          This is your one coffee chat opportunity. Make it count!
+          {isPending
+            ? 'Check back soon for confirmation!'
+            : 'This is your one coffee chat opportunity. Make it count!'}
         </p>
       </div>
     </div>

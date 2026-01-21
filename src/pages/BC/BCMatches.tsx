@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Coffee, MessageCircle, ArrowRight, Users } from 'lucide-react';
+import { Coffee, MessageCircle, ArrowRight, Users, Clock, CheckCircle, RefreshCw, Loader } from 'lucide-react';
 import { useBC } from '../../context/BCContext';
 import { BCHeader } from '../../components/BC/BCHeader';
 import { BCMatch } from '../../services/types';
@@ -26,6 +26,9 @@ interface MatchRowProps {
 
 function MatchRow({ match, onClick }: MatchRowProps) {
   const lastMessage = match.messages[match.messages.length - 1];
+  const status = (match as any).status || 'confirmed';
+  const isPending = status === 'pending';
+  const isConfirmed = status === 'confirmed';
 
   return (
     <motion.button
@@ -44,16 +47,29 @@ function MatchRow({ match, onClick }: MatchRowProps) {
             className="w-full h-full object-cover"
           />
         </div>
-        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-cyan-500 border border-black
-                        flex items-center justify-center">
-          <Coffee className="w-3 h-3" />
+        <div className={`absolute -bottom-1 -right-1 w-5 h-5 border border-black
+                        flex items-center justify-center ${isPending ? 'bg-yellow-500' : 'bg-cyan-500'}`}>
+          {isPending ? <Clock className="w-3 h-3" /> : <Coffee className="w-3 h-3" />}
         </div>
       </div>
 
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
-          <h3 className="font-bold truncate">{match.applicant.name}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="font-bold truncate">{match.applicant.name}</h3>
+            {isPending && (
+              <span className="px-2 py-0.5 bg-yellow-500 text-black text-xs font-mono font-bold">
+                PENDING
+              </span>
+            )}
+            {isConfirmed && (
+              <span className="px-2 py-0.5 bg-green-500 text-white text-xs font-mono font-bold flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" />
+                CONFIRMED
+              </span>
+            )}
+          </div>
           <span className="text-xs text-medium-gray font-mono flex-shrink-0">
             {formatDate(match.matchedAt)}
           </span>
@@ -61,7 +77,11 @@ function MatchRow({ match, onClick }: MatchRowProps) {
         <p className="text-sm text-medium-gray font-mono truncate">
           {match.applicant.role}
         </p>
-        {lastMessage ? (
+        {isPending ? (
+          <p className="text-xs text-yellow-600 font-mono mt-1">
+            Waiting for admin approval
+          </p>
+        ) : lastMessage ? (
           <p className="text-xs text-medium-gray font-mono truncate mt-1">
             {lastMessage.isFromCurrentUser ? 'You: ' : ''}{lastMessage.content}
           </p>
@@ -80,7 +100,8 @@ function MatchRow({ match, onClick }: MatchRowProps) {
 
 export function BCMatches() {
   const navigate = useNavigate();
-  const { userType, isBCMember, memberMatches } = useBC();
+  const { userType, isBCMember, memberMatches, isAuthenticated, loadMatchesFromAPI } = useBC();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Redirect if not a BC member
   useEffect(() => {
@@ -96,6 +117,20 @@ export function BCMatches() {
   const handleMatchClick = (match: BCMatch) => {
     navigate(`/bc/chat/${match.id}`);
   };
+
+  const handleRefresh = async () => {
+    if (!isAuthenticated) return;
+    setIsRefreshing(true);
+    try {
+      await loadMatchesFromAPI();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Count pending and confirmed matches
+  const pendingCount = memberMatches.filter((m: any) => m.status === 'pending').length;
+  const confirmedCount = memberMatches.filter((m: any) => m.status === 'confirmed').length;
 
   return (
     <div className="min-h-screen bg-dark-gray flex flex-col">
@@ -136,14 +171,38 @@ export function BCMatches() {
           // Matches list
           <div className="space-y-4">
             {/* Stats */}
-            <div className="bg-cyan-500 border-3 border-black p-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Coffee className="w-5 h-5" />
-                <span className="font-bold">{memberMatches.length} Coffee Chats</span>
+            <div className="bg-cyan-500 border-3 border-black p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Coffee className="w-5 h-5" />
+                  <span className="font-bold">{memberMatches.length} Coffee Chats</span>
+                </div>
+                {isAuthenticated && (
+                  <button
+                    onClick={handleRefresh}
+                    disabled={isRefreshing}
+                    className="p-2 hover:bg-black/10 rounded transition-colors"
+                  >
+                    {isRefreshing ? (
+                      <Loader className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-4 h-4" />
+                    )}
+                  </button>
+                )}
               </div>
-              <span className="font-mono text-sm">
-                {memberMatches.filter(m => m.messages.length > 0).length} active
-              </span>
+              <div className="flex gap-4 text-sm font-mono">
+                <span className="flex items-center gap-1">
+                  <CheckCircle className="w-4 h-4" />
+                  {confirmedCount} confirmed
+                </span>
+                {pendingCount > 0 && (
+                  <span className="flex items-center gap-1 text-yellow-800">
+                    <Clock className="w-4 h-4" />
+                    {pendingCount} pending
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Match list */}

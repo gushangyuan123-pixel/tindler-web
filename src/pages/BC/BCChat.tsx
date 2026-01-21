@@ -53,6 +53,7 @@ export function BCChat() {
     currentProfile,
     addMessage,
     isAuthenticated,
+    loadMessagesFromAPI,
   } = useBC();
 
   const [inputValue, setInputValue] = useState('');
@@ -84,19 +85,12 @@ export function BCChat() {
   useEffect(() => {
     if (isAuthenticated && match && matchId) {
       setIsLoadingMessages(true);
-      bcApiService.getMessages(parseInt(matchId))
-        .then((messages) => {
-          // Messages are loaded into match from API
-          // The context should update accordingly
-        })
-        .catch((error) => {
-          console.error('Failed to load messages:', error);
-        })
+      loadMessagesFromAPI(matchId)
         .finally(() => {
           setIsLoadingMessages(false);
         });
     }
-  }, [isAuthenticated, match, matchId]);
+  }, [isAuthenticated, match, matchId, loadMessagesFromAPI]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
