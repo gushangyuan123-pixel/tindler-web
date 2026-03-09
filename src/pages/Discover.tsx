@@ -9,6 +9,7 @@ import { useApp } from '../context/AppContext';
 import { UserProfile } from '../services/types';
 import { apiService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import { mockProfiles, shuffleProfiles } from '../data/mockProfiles';
 
 export function Discover() {
   const navigate = useNavigate();
@@ -46,15 +47,24 @@ export function Discover() {
     try {
       // Fetch profiles from real backend API
       const response = await apiService.getSwipeProfiles();
-      if (response.success && response.profiles) {
+      if (response.success && response.profiles && response.profiles.length > 0) {
         // Shuffle and exclude current user
         const shuffled = response.profiles
           .sort(() => Math.random() - 0.5)
           .filter((p: UserProfile) => p.id !== currentUser?.id);
         setProfiles(shuffled);
+      } else {
+        // API returned no profiles — use mock data
+        const shuffled = shuffleProfiles(mockProfiles)
+          .filter((p) => p.id !== currentUser?.id);
+        setProfiles(shuffled);
       }
     } catch (error) {
       console.error('Error loading profiles:', error);
+      // API unreachable — fall back to mock data
+      const shuffled = shuffleProfiles(mockProfiles)
+        .filter((p) => p.id !== currentUser?.id);
+      setProfiles(shuffled);
     } finally {
       setIsLoading(false);
     }
