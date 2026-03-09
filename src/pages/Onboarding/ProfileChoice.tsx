@@ -1,14 +1,14 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Users, UserPlus, Zap } from 'lucide-react';
+import { Eye, UserPlus, Zap } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 
 interface ProfileChoiceProps {
-  onUseExisting: () => void;
+  onSkip: () => void;
   onCreateNew: () => void;
 }
 
-export function ProfileChoice({ onUseExisting, onCreateNew }: ProfileChoiceProps) {
+export function ProfileChoice({ onSkip, onCreateNew }: ProfileChoiceProps) {
   return (
     <div className="min-h-screen bg-dark-gray flex flex-col">
       {/* Header */}
@@ -43,52 +43,52 @@ export function ProfileChoice({ onUseExisting, onCreateNew }: ProfileChoiceProps
 
       {/* Options */}
       <div className="flex-1 flex flex-col justify-center p-6 gap-4">
-        {/* Use Existing Profile */}
+        {/* Create New Profile */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.4 }}
         >
           <button
-            onClick={onUseExisting}
+            onClick={onCreateNew}
             className="w-full p-6 bg-medium-gray/30 rounded-xl border-2 border-acid-yellow text-left transition-all hover:bg-medium-gray/50 active:scale-[0.98]"
           >
             <div className="flex items-start gap-4">
               <div className="w-14 h-14 rounded-lg bg-acid-yellow flex items-center justify-center flex-shrink-0">
-                <Users size={28} className="text-black" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-white mb-1">
-                  Use Existing Profile
-                </h3>
-                <p className="text-sm text-light-gray">
-                  Already have a BMOE profile? Select it from our directory and start connecting.
-                </p>
-              </div>
-            </div>
-          </button>
-        </motion.div>
-
-        {/* Create New Profile */}
-        <motion.div
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <button
-            onClick={onCreateNew}
-            className="w-full p-6 bg-medium-gray/30 rounded-xl border border-medium-gray text-left transition-all hover:bg-medium-gray/50 hover:border-light-gray active:scale-[0.98]"
-          >
-            <div className="flex items-start gap-4">
-              <div className="w-14 h-14 rounded-lg bg-medium-gray flex items-center justify-center flex-shrink-0">
-                <UserPlus size={28} className="text-light-gray" />
+                <UserPlus size={28} className="text-black" />
               </div>
               <div>
                 <h3 className="text-xl font-bold text-white mb-1">
                   Create New Profile
                 </h3>
                 <p className="text-sm text-light-gray">
-                  New to the community? Create your profile and start meeting founders.
+                  Create your profile and start meeting founders.
+                </p>
+              </div>
+            </div>
+          </button>
+        </motion.div>
+
+        {/* Continue Without Account */}
+        <motion.div
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <button
+            onClick={onSkip}
+            className="w-full p-6 bg-medium-gray/30 rounded-xl border border-medium-gray text-left transition-all hover:bg-medium-gray/50 hover:border-light-gray active:scale-[0.98]"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-14 h-14 rounded-lg bg-medium-gray flex items-center justify-center flex-shrink-0">
+                <Eye size={28} className="text-light-gray" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white mb-1">
+                  Continue Without Account
+                </h3>
+                <p className="text-sm text-light-gray">
+                  Just browse profiles and explore the community.
                 </p>
               </div>
             </div>

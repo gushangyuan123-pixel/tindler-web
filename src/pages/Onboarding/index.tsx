@@ -19,11 +19,10 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     setStep('choice');
   };
 
-  const handleUseExisting = () => {
-    // User wants to select from existing profiles
-    // Set onboarded=true so they go to ProfileSelection
-    // hasSelectedProfile stays false so they see the selection screen
+  const handleSkip = () => {
+    // User wants to browse without creating an account
     setOnboarded(true);
+    setHasSelectedProfile(true);
     onComplete();
   };
 
@@ -74,7 +73,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         {step === 'splash' && <Splash onGetStarted={handleGetStarted} />}
         {step === 'choice' && (
           <ProfileChoice
-            onUseExisting={handleUseExisting}
+            onSkip={handleSkip}
             onCreateNew={handleCreateNew}
           />
         )}
