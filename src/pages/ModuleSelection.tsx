@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Coffee, Users, Lock, Shield } from 'lucide-react';
+import { Coffee, Users, Shield } from 'lucide-react';
 import bcApiService from '../services/bcApi';
 
 export function ModuleSelection() {
@@ -66,28 +66,24 @@ export function ModuleSelection() {
 
       {/* Module Selection */}
       <div className="w-full max-w-sm space-y-4">
-        {/* IceLatte Networking - Coming Soon */}
-        <motion.div
+        {/* IceLatte Networking - Active */}
+        <motion.button
           initial={{ x: -20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="relative"
+          onClick={() => navigate('/app')}
+          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 border-2 border-purple-400 rounded-2xl p-6 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-purple-500/20"
         >
-          <div className="bg-zinc-800/50 border-2 border-zinc-700 rounded-2xl p-6 opacity-60 cursor-not-allowed">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-zinc-700 rounded-xl flex items-center justify-center">
-                <Users className="w-7 h-7 text-zinc-500" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-bold text-zinc-400">IceLatte Networking</h3>
-                  <Lock className="w-4 h-4 text-zinc-500" />
-                </div>
-                <p className="text-sm text-zinc-500 mt-1">Coming Soon...</p>
-              </div>
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+              <Users className="w-7 h-7 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-white">IceLatte Networking</h3>
+              <p className="text-sm text-purple-100 mt-1">Swipe, match, and connect with professionals</p>
             </div>
           </div>
-        </motion.div>
+        </motion.button>
 
         {/* IceLatte X Berkeley Consulting - Active */}
         <motion.button
