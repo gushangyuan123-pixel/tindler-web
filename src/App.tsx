@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 
@@ -8,7 +8,6 @@ import { AppProvider, useApp } from './context/AppContext';
 import { BCProvider } from './context/BCContext';
 
 // Pages
-import { Login } from './pages/Login';
 import { ModuleSelection } from './pages/ModuleSelection';
 import { OnboardingFlow } from './pages/Onboarding';
 import { ProfileSelection } from './pages/ProfileSelection';
@@ -61,22 +60,24 @@ function BCRoutes() {
 }
 
 function AppRoutes() {
-  const { isAuthenticated, isLoading: authLoading, signIn } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, demoSignIn } = useAuth();
   const { isOnboarded, hasSelectedProfile, matches, chatsCount } = useApp();
   const location = useLocation();
 
+  // Auto-enter demo mode for the networking app
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      demoSignIn();
+    }
+  }, [authLoading, isAuthenticated, demoSignIn]);
+
   // Show loading screen while checking auth
-  if (authLoading) {
+  if (authLoading || !isAuthenticated) {
     return (
       <div className="min-h-screen bg-dark-gray flex items-center justify-center">
         <div className="w-12 h-12 border-3 border-acid-yellow border-t-transparent rounded-full animate-spin" />
       </div>
     );
-  }
-
-  // Show login if not authenticated
-  if (!isAuthenticated) {
-    return <Login onSuccess={signIn} />;
   }
 
   // Determine which screen to show based on state

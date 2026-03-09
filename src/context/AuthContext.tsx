@@ -5,9 +5,11 @@ import { apiService } from '../services/api';
 interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
+  isDemoMode: boolean;
   user: APIUser | null;
   signIn: (userData: APIUser) => void;
   signOut: () => void;
+  demoSignIn: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -17,6 +19,7 @@ const USER_STORAGE_KEY = 'tindler_user';
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDemoMode, setIsDemoMode] = useState(false);
   const [user, setUser] = useState<APIUser | null>(null);
 
   // Check for existing session on mount
@@ -65,9 +68,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(() => {
     setIsAuthenticated(false);
+    setIsDemoMode(false);
     setUser(null);
     apiService.clearTokens();
     localStorage.removeItem(USER_STORAGE_KEY);
+  }, []);
+
+  const demoSignIn = useCallback(() => {
+    const demoUser: APIUser = {
+      id: 'demo-user',
+      email: 'demo@icelatte.co',
+      name: 'Demo User',
+    };
+    setUser(demoUser);
+    setIsDemoMode(true);
+    setIsAuthenticated(true);
   }, []);
 
   return (
@@ -75,9 +90,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         isAuthenticated,
         isLoading,
+        isDemoMode,
         user,
         signIn,
         signOut,
+        demoSignIn,
       }}
     >
       {children}
