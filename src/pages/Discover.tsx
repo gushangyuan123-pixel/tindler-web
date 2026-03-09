@@ -108,10 +108,10 @@ export function Discover() {
     if (latestMatchFull) {
       hideMatchPopup();
       // Navigate directly to chat with match data
-      navigate(`/chat/${latestMatchFull.matchId}`, { state: { match: latestMatchFull } });
+      navigate(`/app/chat/${latestMatchFull.matchId}`, { state: { match: latestMatchFull } });
     } else {
       hideMatchPopup();
-      navigate('/matches');
+      navigate('/app/matches');
     }
   };
 

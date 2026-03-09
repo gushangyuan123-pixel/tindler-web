@@ -86,7 +86,7 @@ function AppRoutes() {
   const showMainApp = isOnboarded && hasSelectedProfile;
 
   // Hide tab bar on chat and onboarding screens
-  const hideTabBar = location.pathname.startsWith('/chat') || showOnboarding || showProfileSelection;
+  const hideTabBar = location.pathname.startsWith('/app/chat') || showOnboarding || showProfileSelection;
 
   return (
     <div className="min-h-screen bg-dark-gray">
@@ -108,12 +108,12 @@ function AppRoutes() {
         {showMainApp && (
           <>
             <Routes>
-              <Route path="/" element={<Navigate to="/discover" replace />} />
-              <Route path="/discover" element={<Discover />} />
-              <Route path="/matches" element={<Matches />} />
-              <Route path="/chat/:matchId" element={<Chat />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="*" element={<Navigate to="/discover" replace />} />
+              <Route path="/" element={<Navigate to="discover" replace />} />
+              <Route path="discover" element={<Discover />} />
+              <Route path="matches" element={<Matches />} />
+              <Route path="chat/:matchId" element={<Chat />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="*" element={<Navigate to="discover" replace />} />
             </Routes>
 
             {!hideTabBar && (

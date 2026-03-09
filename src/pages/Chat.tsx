@@ -165,7 +165,7 @@ export function Chat() {
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b border-medium-gray/30">
         <button
-          onClick={() => navigate('/matches')}
+          onClick={() => navigate('/app/matches')}
           className="p-1 text-light-gray hover:text-white"
         >
           <ChevronLeft size={24} />

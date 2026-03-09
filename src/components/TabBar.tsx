@@ -13,9 +13,9 @@ export function TabBar({ matchCount = 0, chatCount = 0 }: TabBarProps) {
   const location = useLocation();
 
   const tabs = [
-    { path: '/discover', icon: Flame, label: 'Discover' },
-    { path: '/matches', icon: Heart, label: 'Matches', badge: matchCount + chatCount },
-    { path: '/profile', icon: User, label: 'Profile' },
+    { path: '/app/discover', icon: Flame, label: 'Discover' },
+    { path: '/app/matches', icon: Heart, label: 'Matches', badge: matchCount + chatCount },
+    { path: '/app/profile', icon: User, label: 'Profile' },
   ];
 
   return (

@@ -15,7 +15,7 @@ export function Matches() {
   const conversations = matches.filter((m) => m.lastMessage);
 
   const handleMatchClick = (match: Match) => {
-    navigate(`/chat/${match.matchId}`, { state: { match } });
+    navigate(`/app/chat/${match.matchId}`, { state: { match } });
   };
 
   if (matches.length === 0) {
